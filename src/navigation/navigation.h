@@ -67,6 +67,9 @@ class Navigation {
 
  private:
 
+  float lerp(float a, float b, float t);
+  float _t, _ramp_up_time, _start_time;
+
   // Current robot location.
   Eigen::Vector2f robot_loc_;
   // Current robot orientation.

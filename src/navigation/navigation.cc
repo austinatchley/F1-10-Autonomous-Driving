@@ -55,6 +55,9 @@ const float kEpsilon = 1e-5;
 namespace navigation {
 
 Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
+    _t(0.f),
+    _ramp_up_time(1000.f),
+    _start_time(static_cast<float>(std::clock())),
     robot_loc_(0, 0),
     robot_angle_(0),
     robot_vel_(0, 0),
@@ -73,6 +76,7 @@ Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
 }
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
+    std::cout << "set nav goal" << std::endl;
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {
@@ -91,12 +95,24 @@ void Navigation::ObservePointCloud(const vector<Vector2f>& cloud,
 void Navigation::Run() {
   // Create Helper functions here
   // Milestone 1 will fill out part of this class.
+
+  _t += (static_cast<float>(std::clock()) - _start_time) / 1000.f;
+
   AckermannCurvatureDriveMsg msg;
-  msg.velocity = 1.f;
+  msg.velocity = lerp(0, 1, _t / _ramp_up_time);
   msg.curvature = 1.f; // 1m radius of turning
 
-  drive_pub.publish(msg);
+  std::cout << "Time elapsed: " << _t << std::endl;
+  std::cout << "Sending velocity: " << msg.velocity << std::endl;
+
+  drive_pub_.publish(msg);
+
   // Milestone 3 will complete the rest of navigation.
+}
+
+float Navigation::lerp(float a, float b, float t) {
+    if (t > 1.f) { t = 1.f; }
+    return a + t * (b - a);
 }
 
 }  // namespace navigation
