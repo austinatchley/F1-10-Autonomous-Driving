@@ -26,13 +26,13 @@
 #define MUTABLE_QUEUE
 
 using std::deque;
-using std::pair;
 using std::make_pair;
+using std::pair;
 
-template<class Value, class Priority>
+template <class Value, class Priority>
 class SimpleQueue {
- private:
-  public:
+private:
+public:
   // Insert a new value, with the specified priority. If the value
   // already exists, its priority is updated.
   void Push(const Value& v, const Priority& p) {
@@ -57,8 +57,8 @@ class SimpleQueue {
 
   // Sorts the priorities.
   void Sort() {
-    static const auto comparator = 
-        [](const pair<Value, Priority>& v1, const pair<Value, Priority>& v2) {
+    static const auto comparator = [](const pair<Value, Priority>& v1,
+                                      const pair<Value, Priority>& v2) {
       return (v1.second < v2.second);
     };
     sort(values_.begin(), values_.end(), comparator);
@@ -89,8 +89,8 @@ class SimpleQueue {
     return false;
   }
 
-  private:
-  deque<pair<Value, Priority> > values_;
+private:
+  deque<pair<Value, Priority>> values_;
 };
 
-#endif  // MUTABLE_QUEUE
+#endif // MUTABLE_QUEUE

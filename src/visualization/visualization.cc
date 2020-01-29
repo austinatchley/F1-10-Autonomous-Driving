@@ -22,11 +22,11 @@
 #include <string>
 
 #include "eigen3/Eigen/Dense"
-#include "f1tenth_course/Pose2Df.h"
 #include "f1tenth_course/ColoredArc2D.h"
 #include "f1tenth_course/ColoredLine2D.h"
-#include "f1tenth_course/PathVisualization.h"
 #include "f1tenth_course/ColoredPoint2D.h"
+#include "f1tenth_course/PathVisualization.h"
+#include "f1tenth_course/Pose2Df.h"
 #include "f1tenth_course/VisualizationMsg.h"
 #include "ros/ros.h"
 
@@ -36,8 +36,8 @@ using Eigen::Vector2f;
 using f1tenth_course::ColoredArc2D;
 using f1tenth_course::ColoredLine2D;
 using f1tenth_course::ColoredPoint2D;
-using f1tenth_course::Pose2Df;
 using f1tenth_course::PathVisualization;
+using f1tenth_course::Pose2Df;
 using f1tenth_course::VisualizationMsg;
 using std::string;
 
@@ -48,7 +48,7 @@ void SetPoint(const T1& p1, T2* p2) {
   p2->y = p1.y();
 }
 
-}  // namespace
+} // namespace
 
 namespace visualization {
 
@@ -62,8 +62,7 @@ void ClearVisualizationMsg(VisualizationMsg& msg) {
 }
 
 // Return new visualization message, with initialized headers and namespace.
-f1tenth_course::VisualizationMsg NewVisualizationMessage(
-    const string& frame, const string& ns) {
+f1tenth_course::VisualizationMsg NewVisualizationMessage(const string& frame, const string& ns) {
   VisualizationMsg msg;
   msg.header.frame_id = frame;
   msg.header.seq = 0;
@@ -78,10 +77,7 @@ void DrawPoint(const Vector2f& p, uint32_t color, VisualizationMsg& msg) {
   msg.points.push_back(point);
 }
 
-void DrawLine(const Vector2f& p0,
-              const Vector2f& p1,
-              uint32_t color,
-              VisualizationMsg& msg) {
+void DrawLine(const Vector2f& p0, const Vector2f& p1, uint32_t color, VisualizationMsg& msg) {
   ColoredLine2D line;
   SetPoint(p0, &line.p0);
   SetPoint(p1, &line.p1);
@@ -89,26 +85,13 @@ void DrawLine(const Vector2f& p0,
   msg.lines.push_back(line);
 }
 
-void DrawCross(const Eigen::Vector2f& location,
-               float size,
-               uint32_t color,
-               VisualizationMsg& msg) {
-  DrawLine(location + Vector2f(size, size),
-           location - Vector2f(size, size),
-           color,
-           msg);
-  DrawLine(location + Vector2f(size, -size),
-           location - Vector2f(size, -size),
-           color,
-           msg);
+void DrawCross(const Eigen::Vector2f& location, float size, uint32_t color, VisualizationMsg& msg) {
+  DrawLine(location + Vector2f(size, size), location - Vector2f(size, size), color, msg);
+  DrawLine(location + Vector2f(size, -size), location - Vector2f(size, -size), color, msg);
 }
 
-void DrawArc(const Vector2f& center,
-             float radius,
-             float start_angle,
-             float end_angle,
-             uint32_t color,
-             VisualizationMsg& msg) {
+void DrawArc(const Vector2f& center, float radius, float start_angle, float end_angle,
+             uint32_t color, VisualizationMsg& msg) {
   ColoredArc2D arc;
   SetPoint(center, &arc.center);
   arc.radius = radius;
@@ -118,9 +101,7 @@ void DrawArc(const Vector2f& center,
   msg.arcs.push_back(arc);
 }
 
-void DrawParticle(const Vector2f& loc,
-                  float angle,
-                  VisualizationMsg& msg) {
+void DrawParticle(const Vector2f& loc, float angle, VisualizationMsg& msg) {
   Pose2Df particle;
   particle.x = loc.x();
   particle.y = loc.y();
@@ -128,9 +109,7 @@ void DrawParticle(const Vector2f& loc,
   msg.particles.push_back(particle);
 }
 
-void DrawPathOption(const float curvature,
-                    const float distance,
-                    const float clearance,
+void DrawPathOption(const float curvature, const float distance, const float clearance,
                     VisualizationMsg& msg) {
   PathVisualization option;
   option.curvature = curvature;
@@ -138,4 +117,4 @@ void DrawPathOption(const float curvature,
   option.clearance = clearance;
   msg.path_options.push_back(option);
 }
-}  // namespace visualization
+} // namespace visualization

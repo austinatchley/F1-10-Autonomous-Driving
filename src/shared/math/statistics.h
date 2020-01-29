@@ -56,12 +56,11 @@ T ProbabilityDensityUniform(const T& sample, const T& min, const T& max) {
 template <typename Container, typename Type, typename PercentType>
 Type GetPercentile(Container c, const PercentType percentile) {
   std::sort(c.begin(), c.end());
-  const size_t idx =
-      static_cast<size_t>(static_cast<PercentType>(c.size()) * percentile);
+  const size_t idx = static_cast<size_t>(static_cast<PercentType>(c.size()) * percentile);
   const Type& val = c[idx];
   return val;
 }
 
-}  // namespace statistics
+} // namespace statistics
 
-#endif  // SRC_MATH_STATISTICS_H_
+#endif // SRC_MATH_STATISTICS_H_

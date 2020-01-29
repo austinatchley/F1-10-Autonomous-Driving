@@ -28,18 +28,18 @@
 
 // Helper class to execute tightly timed loops.
 class RateLoop {
- public:
+public:
   // Primary constructor, initialize a fixed rate.
   explicit RateLoop(double rate);
 
   // Sleep for as long as necessary to run at the specified rate.
   void Sleep();
 
- private:
+private:
   // Disable default constructor.
   RateLoop();
 
- private:
+private:
   double t_last_run_;
   const double delay_interval_;
 };
@@ -61,7 +61,7 @@ void Sleep(double duration);
 // following statement at the begining of the function:
 // FunctionTimer ft(__PRETTY_FUNCTION__);
 class FunctionTimer {
- public:
+public:
   // Primary constructor, pass in the function name, or whatever label you wish
   // to identify the timer by.
   explicit FunctionTimer(const char* name);
@@ -74,13 +74,13 @@ class FunctionTimer {
   // provided lap ID, usually the line number from where the lap was called.
   void Lap(int id);
 
- private:
+private:
   // Disable copy constructor.
   FunctionTimer(const FunctionTimer&);
   // Disable default constructor.
   FunctionTimer();
 
- private:
+private:
   // Name of the timer.
   const std::string name_;
   // Start time.
@@ -101,28 +101,29 @@ class FunctionTimer {
 // }
 // ==============================
 class CumulativeFunctionTimer {
- public:
+public:
   class Invocation {
-   public:
+  public:
     // Primary constructor, starts the timer.
     explicit Invocation(CumulativeFunctionTimer* cumulative_timer);
 
     // Default destructor, Stops the timer.
     ~Invocation();
-   private:
+
+  private:
     // Disable copy constructor.
     Invocation(const Invocation&);
     // Disable default constructor.
     Invocation();
 
-   private:
+  private:
     // Start time.
     const double t_start_;
     // Pointer to cumulative timer.
     CumulativeFunctionTimer* const cumulative_timer_;
   };
 
- public:
+public:
   // Primary constructor, pass in the function name, or whatever label you wish
   // to identify the timer by.
   explicit CumulativeFunctionTimer(const char* name);
@@ -130,13 +131,13 @@ class CumulativeFunctionTimer {
   // Default destructor. Print statistics of all invocations.
   ~CumulativeFunctionTimer();
 
- private:
+private:
   // Disable copy constructor.
   CumulativeFunctionTimer(const CumulativeFunctionTimer&);
   // Disable default constructor.
   CumulativeFunctionTimer();
 
- private:
+private:
   // Name of the timer.
   const std::string name_;
   // Cumulative run time.
@@ -145,4 +146,4 @@ class CumulativeFunctionTimer {
   uint64_t total_invocations_;
 };
 
-#endif  // SRC_UTIL_TIMER_H_
+#endif // SRC_UTIL_TIMER_H_

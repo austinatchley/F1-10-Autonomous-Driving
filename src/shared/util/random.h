@@ -27,12 +27,10 @@
 // Your one-stop shop for generating random numbers.
 namespace util_random {
 class Random {
- public:
+public:
   Random() : randn_(0, 1.0), randf_(0.0, 1.0) {}
 
-  Random(unsigned long seed): generator_(seed),
-                              randn_(0, 1.0),
-                              randf_(0.0, 1.0) {}
+  Random(unsigned long seed) : generator_(seed), randn_(0, 1.0), randf_(0.0, 1.0) {}
 
   // Generate random numbers between 0 and 1, inclusive.
   double UniformRandom();
@@ -50,10 +48,10 @@ class Random {
   // Return a random value drawn from a Normal distribution.
   double Gaussian(const double mean, const double stddev);
 
- private:
+private:
   std::default_random_engine generator_;
   std::normal_distribution<double> randn_;
   std::uniform_real_distribution<double> randf_;
 };
-}  // namespace util_random
-#endif  // SRC_UTIL_RANDOM_H_
+} // namespace util_random
+#endif // SRC_UTIL_RANDOM_H_

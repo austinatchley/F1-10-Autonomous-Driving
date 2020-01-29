@@ -40,25 +40,19 @@ struct Particle {
 };
 
 class ParticleFilter {
- public:
+public:
   // Default Constructor.
-   ParticleFilter();
+  ParticleFilter();
 
   // Observe a new laser scan.
-  void ObserveLaser(const std::vector<float>& ranges,
-                    float range_min,
-                    float range_max,
-                    float angle_min,
-                    float angle_max);
+  void ObserveLaser(const std::vector<float>& ranges, float range_min, float range_max,
+                    float angle_min, float angle_max);
 
   // Observe new odometry-reported location.
-  void ObserveOdometry(const Eigen::Vector2f& odom_loc,
-                       const float odom_angle);
+  void ObserveOdometry(const Eigen::Vector2f& odom_loc, const float odom_angle);
 
   // Initialize the robot location.
-  void Initialize(const std::string& map_file,
-                  const Eigen::Vector2f& loc,
-                  const float angle);
+  void Initialize(const std::string& map_file, const Eigen::Vector2f& loc, const float angle);
 
   // Return the list of particles.
   void GetParticles(std::vector<Particle>* particles) const;
@@ -67,28 +61,18 @@ class ParticleFilter {
   void GetLocation(Eigen::Vector2f* loc, float* angle) const;
 
   // Update particle weight based on laser.
-  void Update(const std::vector<float>& ranges,
-              float range_min,
-              float range_max,
-              float angle_min,
-              float angle_max,
-              Particle* p);
+  void Update(const std::vector<float>& ranges, float range_min, float range_max, float angle_min,
+              float angle_max, Particle* p);
 
   // Resample particles.
   void Resample();
 
   // For debugging: get predicted point cloud from current location.
-  void GetPredictedPointCloud(const Eigen::Vector2f& loc,
-                              const float angle,
-                              int num_ranges,
-                              float range_min,
-                              float range_max,
-                              float angle_min,
-                              float angle_max,
+  void GetPredictedPointCloud(const Eigen::Vector2f& loc, const float angle, int num_ranges,
+                              float range_min, float range_max, float angle_min, float angle_max,
                               std::vector<Eigen::Vector2f>* scan);
 
- private:
-
+private:
   // List of particles being tracked.
   std::vector<Particle> particles_;
 
@@ -103,6 +87,6 @@ class ParticleFilter {
   float prev_odom_angle_;
   bool odom_initialized_;
 };
-}  // namespace slam
+} // namespace particle_filter
 
-#endif   // SRC_PARTICLE_FILTER_H_
+#endif // SRC_PARTICLE_FILTER_H_

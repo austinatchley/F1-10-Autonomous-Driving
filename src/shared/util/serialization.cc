@@ -18,13 +18,13 @@
 //========================================================================
 #include "util/serialization.h"
 
+#include <algorithm>
 #include <fcntl.h>
 #include <string.h>
+#include <string>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <algorithm>
-#include <string>
 
 #include "glog/logging.h"
 
@@ -34,10 +34,9 @@ namespace serialization {
 std::string RandomString(size_t length) {
   srand(time(NULL));
   auto randchar = []() -> char {
-    const char charset[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
+    const char charset[] = "0123456789"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "abcdefghijklmnopqrstuvwxyz";
     const size_t max_index = (sizeof(charset) - 1);
     return charset[rand() % max_index];
   };
@@ -47,11 +46,8 @@ std::string RandomString(size_t length) {
 }
 
 std::string PrepareDirectory(size_t random_string_length) {
-  const std::string path =
-      "test_outputs/dir" + RandomString(random_string_length) + "/";
-  for (int i = 0;
-       i < 10 && mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0;
-       ++i) {
+  const std::string path = "test_outputs/dir" + RandomString(random_string_length) + "/";
+  for (int i = 0; i < 10 && mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) < 0; ++i) {
   }
   return path;
 }
@@ -62,12 +58,11 @@ static char kRandomDirectory[kNumTotalChars] = {0};
 int CreateOrEraseFileForWrite(const std::string& file_name) {
   // Initialize the static folder path buffer, if not already initialized.
   if (strlen(kRandomDirectory) == 0) {
-    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(),
-            kNumTotalChars);
+    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(), kNumTotalChars);
   }
   mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-  int file_descriptor = open((kRandomDirectory + file_name).c_str(),
-                             O_CREAT | O_WRONLY | O_TRUNC, mode);
+  int file_descriptor =
+      open((kRandomDirectory + file_name).c_str(), O_CREAT | O_WRONLY | O_TRUNC, mode);
   if (file_descriptor < 0) {
     LOG(FATAL) << "Error opening file " << (kRandomDirectory + file_name);
   }
@@ -77,8 +72,7 @@ int CreateOrEraseFileForWrite(const std::string& file_name) {
 int OpenFileForRead(const std::string& file_name) {
   // Initialize the static folder path buffer, if not already initialized.
   if (strlen(kRandomDirectory) == 0) {
-    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(),
-            kNumTotalChars);
+    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(), kNumTotalChars);
   }
   return OpenGeneralFileForRead(kRandomDirectory + file_name);
 }
@@ -93,16 +87,14 @@ int OpenGeneralFileForRead(const std::string& file_name) {
 
 std::string GetFolderName() {
   if (strlen(kRandomDirectory) == 0) {
-    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(),
-            kNumTotalChars);
+    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(), kNumTotalChars);
   }
   return std::string(kRandomDirectory);
 }
 
 std::string GetFullFolderPath() {
   if (strlen(kRandomDirectory) == 0) {
-    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(),
-            kNumTotalChars);
+    strncpy(kRandomDirectory, PrepareDirectory(kNumRandomChars).c_str(), kNumTotalChars);
   }
 
   char cwd[1024] = {0};
@@ -111,5 +103,5 @@ std::string GetFullFolderPath() {
   return std::string(cwd) + "/" + std::string(kRandomDirectory);
 }
 
-}  // namespace serialization
-}  // namespace util
+} // namespace serialization
+} // namespace util

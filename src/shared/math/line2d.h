@@ -30,7 +30,6 @@
 #ifndef LINE2D_H
 #define LINE2D_H
 
-
 namespace geometry {
 
 template <typename T>
@@ -40,10 +39,8 @@ struct Line {
   Vector2T p0;
   Vector2T p1;
   Line() {}
-  Line(const Vector2T& p0,
-       const Vector2T& p1) : p0(p0), p1(p1) {}
-  Line(const T& x0, const T& y0, const T& x1, const T& y1) :
-      p0(x0, y0), p1(x1, y1) {}
+  Line(const Vector2T& p0, const Vector2T& p1) : p0(p0), p1(p1) {}
+  Line(const T& x0, const T& y0, const T& x1, const T& y1) : p0(x0, y0), p1(x1, y1) {}
 
   void Set(const Vector2T& p0_new, const Vector2T& p1_new) {
     p0 = p0_new;
@@ -87,9 +84,7 @@ struct Line {
     return ClosestApproach(l.p0, l.p1);
   }
 
-  bool CloserThan(const Vector2T& p2,
-                  const Vector2T& p3,
-                  const T& margin) const {
+  bool CloserThan(const Vector2T& p2, const Vector2T& p3, const T& margin) const {
     // Bounding-box broad phase check.
     if (std::min(p0.x(), p1.x()) > std::max(p2.x(), p3.x()) + margin ||
         std::max(p0.x(), p1.x()) < std::min(p2.x(), p3.x()) - margin ||
@@ -101,8 +96,7 @@ struct Line {
     return (ClosestApproach(p2, p3) < margin);
   }
 
-  bool Crosses(const Vector2T& p2,
-               const Vector2T& p3) const {
+  bool Crosses(const Vector2T& p2, const Vector2T& p3) const {
     // Bounding-box broad phase check.
     if (std::min(p0.x(), p1.x()) > std::max(p2.x(), p3.x())) return false;
     if (std::max(p0.x(), p1.x()) < std::min(p2.x(), p3.x())) return false;
@@ -117,11 +111,10 @@ struct Line {
     */
     // Okay, the line segments definitely intersect.
     return (Cross<T>(d1, p3 - p0) * Cross<T>(d1, p2 - p0) < -kEpsilon) &&
-        (Cross<T>(d2, p1 - p2) * Cross<T>(d2, p0 - p2) < -kEpsilon);
+           (Cross<T>(d2, p1 - p2) * Cross<T>(d2, p0 - p2) < -kEpsilon);
   }
 
-  bool Intersects(const Vector2T& p2,
-                  const Vector2T& p3) const {
+  bool Intersects(const Vector2T& p2, const Vector2T& p3) const {
     // Bounding-box broad phase check.
     if (std::min(p0.x(), p1.x()) > std::max(p2.x(), p3.x())) return false;
     if (std::max(p0.x(), p1.x()) < std::min(p2.x(), p3.x())) return false;
@@ -136,9 +129,7 @@ struct Line {
     return true;
   }
 
-  bool Intersection(const Vector2T& p2,
-                    const Vector2T& p3,
-                    Vector2T* intersection) const {
+  bool Intersection(const Vector2T& p2, const Vector2T& p3, Vector2T* intersection) const {
     // Bounding-box broad phase check.
     if (std::min(p0.x(), p1.x()) > std::max(p2.x(), p3.x())) return false;
     if (std::max(p0.x(), p1.x()) < std::min(p2.x(), p3.x())) return false;
@@ -152,15 +143,16 @@ struct Line {
     // Okay, the line segments definitely intersect.
     const T d = Cross<T>(d2, -d1);
 
-    if (d == T(0)) { return false; }
+    if (d == T(0)) {
+      return false;
+    }
 
-    const T tb = Cross<T>(p0 -p2, p0-p1) / d;
+    const T tb = Cross<T>(p0 - p2, p0 - p1) / d;
     *intersection = p2 + tb * d2;
     return true;
   }
 
-  bool Intersection(const Line<T>& l2,
-                    Vector2T* intersection) const {
+  bool Intersection(const Line<T>& l2, Vector2T* intersection) const {
     return Intersection(l2.p0, l2.p1, intersection);
   }
 
@@ -178,7 +170,7 @@ struct Line {
     if (Cross(v0, v1) < 0.0) {
       std::swap(v0, v1);
     }
-    return (Cross(v0, dir) >= 0.0  && Cross(v1, dir) <= 0.0);
+    return (Cross(v0, dir) >= 0.0 && Cross(v1, dir) <= 0.0);
   }
 
   bool Touches(const Vector2T& p) {
@@ -201,7 +193,6 @@ typedef Line<float> line2f;
 typedef Line<double> line2d;
 typedef Line<int> line2i;
 
-}  // namespace geometry
+} // namespace geometry
 
-
-#endif   // LINE2D_H
+#endif // LINE2D_H

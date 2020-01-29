@@ -41,19 +41,22 @@ enum Type {
 };
 
 class TypeInterface {
- public:
+public:
   TypeInterface() = delete;
-  TypeInterface(const std::string& key, const Type& type)
-      : key_(key), type_(type) {}
+  TypeInterface(const std::string& key, const Type& type) : key_(key), type_(type) {}
   virtual ~TypeInterface() {}
-  std::string GetKey() const { return key_; };
-  Type GetType() const { return type_; };
+  std::string GetKey() const {
+    return key_;
+  };
+  Type GetType() const {
+    return type_;
+  };
   virtual void SetValue(LuaScript* lua_script) = 0;
 
- protected:
+protected:
   std::string key_;
   Type type_;
 };
-}  // namespace config_types
-}  // namespace config_reader
-#endif  // CONFIGREADER_TYPES_TYPE_INTERFACE_H_
+} // namespace config_types
+} // namespace config_reader
+#endif // CONFIGREADER_TYPES_TYPE_INTERFACE_H_

@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "eigen3/Eigen/Dense"
 #include <stdio.h>
 #include <vector>
-#include "eigen3/Eigen/Dense"
 
 #include "glog/logging.h"
 #include "ros/ros.h"
@@ -55,12 +55,8 @@ struct Color4f {
 
 // Initialize the marker to use the global "map" coordinate frame, identity
 // pose, and specified color and type.
-void InitializeMarker(int marker_type,
-                      const Color4f& color,
-                      float scale_x,
-                      float scale_y,
-                      float scale_z,
-                      visualization_msgs::Marker* msg);
+void InitializeMarker(int marker_type, const Color4f& color, float scale_x, float scale_y,
+                      float scale_z, visualization_msgs::Marker* msg);
 
 template <class Vector3>
 geometry_msgs::Point StdPoint(const Vector3& v) {
@@ -82,9 +78,7 @@ std_msgs::ColorRGBA StdColor(const Color& color) {
 }
 
 template <class Vector3>
-void AddLine(const Vector3& v1,
-             const Vector3& v2,
-             const Color4f& color,
+void AddLine(const Vector3& v1, const Vector3& v2, const Color4f& color,
              visualization_msgs::Marker* msg) {
   CHECK_EQ(msg->type, visualization_msgs::Marker::LINE_LIST);
   msg->points.push_back(StdPoint(v1));
@@ -94,19 +88,14 @@ void AddLine(const Vector3& v1,
 }
 
 template <class Vector3>
-void AddPoint(const Vector3& v,
-              const Color4f& color,
-              visualization_msgs::Marker* msg) {
+void AddPoint(const Vector3& v, const Color4f& color, visualization_msgs::Marker* msg) {
   CHECK_EQ(msg->type, visualization_msgs::Marker::POINTS);
   msg->points.push_back(StdPoint(v));
   msg->colors.push_back(StdColor(color));
 }
 
 template <class Vector3>
-void AddTriangle(const Vector3& v1,
-                 const Vector3& v2,
-                 const Vector3& v3,
-                 const Color4f& color,
+void AddTriangle(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Color4f& color,
                  visualization_msgs::Marker* msg) {
   CHECK_EQ(msg->type, visualization_msgs::Marker::TRIANGLE_LIST);
   msg->points.push_back(StdPoint(v1));
@@ -117,6 +106,6 @@ void AddTriangle(const Vector3& v1,
   msg->colors.push_back(StdColor(color));
 }
 
-}  // namespace gui_helpers
+} // namespace gui_helpers
 
-#endif  // GUI_HELPERS_H
+#endif // GUI_HELPERS_H

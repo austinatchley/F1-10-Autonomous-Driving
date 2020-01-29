@@ -84,9 +84,7 @@ class ConfigReader {
       int wd = inotify_add_watch(fd, file.c_str(), IN_MODIFY);
 
       if (wd < 0) {
-        std::cerr << "ERROR: Couldn't add watch to the file: "
-                  << file
-                  << std::endl;
+        std::cerr << "ERROR: Couldn't add watch to the file: " << file << std::endl;
         perror("Reason");
         return;
       }
@@ -162,12 +160,16 @@ class ConfigReader {
     }
   }
 
- public:
+public:
   ConfigReader() = delete;
-  ConfigReader(const std::vector<std::string>& files) { CreateDaemon(files); }
-  ~ConfigReader() { Stop(); }
+  ConfigReader(const std::vector<std::string>& files) {
+    CreateDaemon(files);
+  }
+  ~ConfigReader() {
+    Stop();
+  }
 };
 
-}  // namespace config_reader
+} // namespace config_reader
 
-#endif  // CONFIGREADER_CONFIG_READER_H_
+#endif // CONFIGREADER_CONFIG_READER_H_

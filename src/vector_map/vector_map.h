@@ -33,53 +33,37 @@ namespace vector_map {
 // Checks if any part of trim_line is occluded by test_line when seen from
 // loc, and if so, trim_line is trimmed accordingly, adding sub-lines to
 // scene_lines if necessary.
-void TrimOcclusion(const Eigen::Vector2f& loc,
-                  const geometry::line2f& line1,
-                  geometry::line2f* line2_ptr,
-                  std::vector<geometry::line2f>* scene_lines_ptr);
+void TrimOcclusion(const Eigen::Vector2f& loc, const geometry::line2f& line1,
+                   geometry::line2f* line2_ptr, std::vector<geometry::line2f>* scene_lines_ptr);
 
 struct VectorMap {
   VectorMap() {}
-  explicit VectorMap(const std::vector<geometry::line2f>& lines) :
-      lines(lines) {}
+  explicit VectorMap(const std::vector<geometry::line2f>& lines) : lines(lines) {}
   explicit VectorMap(const std::string& file) {
     Load(file);
   }
 
-  void GetSceneLines(const Eigen::Vector2f& loc,
-                     float max_range,
+  void GetSceneLines(const Eigen::Vector2f& loc, float max_range,
                      std::vector<geometry::line2f>* lines_list) const;
 
-
-  void SceneRender(const Eigen::Vector2f& loc,
-                   float max_range,
-                   float angle_min,
-                   float angle_max,
+  void SceneRender(const Eigen::Vector2f& loc, float max_range, float angle_min, float angle_max,
                    std::vector<geometry::line2f>* render) const;
 
-  void RayCast(const Eigen::Vector2f& loc,
-               float max_range,
+  void RayCast(const Eigen::Vector2f& loc, float max_range,
                std::vector<geometry::line2f>* render) const;
 
   // Get predicted laser scan from current location.
-  void GetPredictedScan(const Eigen::Vector2f& loc,
-                        float range_min,
-                        float range_max,
-                        float angle_min,
-                        float angle_max,
-                        int num_rays,
-                        std::vector<float>* scan);
+  void GetPredictedScan(const Eigen::Vector2f& loc, float range_min, float range_max,
+                        float angle_min, float angle_max, int num_rays, std::vector<float>* scan);
   void Cleanup();
 
   void Load(const std::string& file);
 
-  bool Intersects(const Eigen::Vector2f& v0, const Eigen::Vector2f& v1) const ;
+  bool Intersects(const Eigen::Vector2f& v0, const Eigen::Vector2f& v1) const;
   std::vector<geometry::line2f> lines;
   std::string file_name;
 };
 
+} // namespace vector_map
 
-
-}  // namespace vector_map
-
-#endif  // VECTOR_MAP_H
+#endif // VECTOR_MAP_H

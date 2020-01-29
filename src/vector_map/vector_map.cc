@@ -35,31 +35,25 @@
 #include "shared/util/timer.h"
 #include "vector_map.h"
 
-using math_util::AngleMod;
-using math_util::RadToDeg;
+using Eigen::Vector2f;
 using geometry::Cross;
 using geometry::Line;
 using geometry::line2f;
+using math_util::AngleMod;
+using math_util::RadToDeg;
 using std::string;
-using std::vector;
-using Eigen::Vector2f;
 using std::swap;
+using std::vector;
 
-#define PRINT_LINE(LINE) \
-    (LINE).p0.x(), (LINE).p0.y(), \
-    (LINE).p1.x(), (LINE).p1.y()
+#define PRINT_LINE(LINE) (LINE).p0.x(), (LINE).p0.y(), (LINE).p1.x(), (LINE).p1.y()
 
 #define PRINT_VEC2(V) (V).x(), (V).y()
 
-DEFINE_double(min_line_length,
-              0.05,
-              "Minimum line length to consider for Analytic ray casting");
+DEFINE_double(min_line_length, 0.05, "Minimum line length to consider for Analytic ray casting");
 
 namespace vector_map {
 
-void TrimOcclusion(const Vector2f& loc,
-                   const line2f& test_line,
-                   line2f* trim_line_ptr,
+void TrimOcclusion(const Vector2f& loc, const line2f& test_line, line2f* trim_line_ptr,
                    vector<line2f>* scene_lines_ptr) {
   // return TrimOcclusionInt(loc, test_line, trim_line_ptr, scene_lines_ptr);
   static const bool kDebug = false;
@@ -90,22 +84,19 @@ void TrimOcclusion(const Vector2f& loc,
   // trim_line.p1 - loc
   Vector2f l2_r1 = l2_p1 - loc;
 
-  //Ensure that r0 vector to r1 vector is in the positive right-handed order
+  // Ensure that r0 vector to r1 vector is in the positive right-handed order
   if (Cross<float>(l1_r0, l1_r1) < 0.0) {
-    swap(l1_r0,l1_r1);
-    swap(l1_p0,l1_p1);
+    swap(l1_r0, l1_r1);
+    swap(l1_p0, l1_p1);
   }
-  if (Cross<float>(l2_r0, l2_r1) < 0.0 ) {
-    swap(l2_r0,l2_r1);
-    swap(l2_p0,l2_p1);
+  if (Cross<float>(l2_r0, l2_r1) < 0.0) {
+    swap(l2_r0, l2_r1);
+    swap(l2_p0, l2_p1);
   }
 
   if (kDebug) {
-    printf("l1_r0:%f,%f l1_r1:%f,%f\nl2_r0:%f,%f l2_r1:%f,%f\n",
-           PRINT_VEC2(l1_r0),
-           PRINT_VEC2(l1_r1),
-           PRINT_VEC2(l2_r0),
-           PRINT_VEC2(l2_r1));
+    printf("l1_r0:%f,%f l1_r1:%f,%f\nl2_r0:%f,%f l2_r1:%f,%f\n", PRINT_VEC2(l1_r0),
+           PRINT_VEC2(l1_r1), PRINT_VEC2(l2_r0), PRINT_VEC2(l2_r1));
   }
   if ((Cross(l1_r0, l2_r0) >= 0.0 && Cross(l1_r1, l2_r0) >= 0.0) ||
       (Cross(l2_r0, l1_r0) >= 0.0 && Cross(l2_r1, l1_r0) >= 0.0)) {
@@ -124,9 +115,7 @@ void TrimOcclusion(const Vector2f& loc,
   const bool rayOcclusion1 = trim_line.RayIntersects(loc, l1_r1);
 
   if (kDebug) {
-    printf("rayOcclusion0:%d rayOcclusion1:%d\n",
-           rayOcclusion0,
-           rayOcclusion1);
+    printf("rayOcclusion0:%d rayOcclusion1:%d\n", rayOcclusion0, rayOcclusion1);
   }
 
   // Vector2f p;
@@ -134,23 +123,18 @@ void TrimOcclusion(const Vector2f& loc,
       test_line.Intersects(loc, l2_p0) && test_line.Intersects(loc, l2_p1);
 
   // test_line.p0 is in front of, and occludes trim_line.
-  const bool occlusion0 = rayOcclusion0 &&
-      (trim_line.Touches(loc) || trim_line.Touches(l1_p0) ||
-      !trim_line.Intersects(loc, l1_p0));
+  const bool occlusion0 = rayOcclusion0 && (trim_line.Touches(loc) || trim_line.Touches(l1_p0) ||
+                                            !trim_line.Intersects(loc, l1_p0));
 
   // test_line.p1 is in front of, and occludes trim_line.
-  const bool occlusion1 = rayOcclusion1 &&
-      (trim_line.Touches(loc) || trim_line.Touches(l1_p1) ||
-      !trim_line.Intersects(loc, l1_p1));
+  const bool occlusion1 = rayOcclusion1 && (trim_line.Touches(loc) || trim_line.Touches(l1_p1) ||
+                                            !trim_line.Intersects(loc, l1_p1));
 
   if (kDebug) {
-    printf("completeOcclusion:%d occlusion0:%d occlusion1:%d\n",
-            completeOcclusion,
-            occlusion0,
-            occlusion1);
-    printf("crosses0:%d crosses1:%d\n",
-            trim_line.Crosses(loc, l1_p0),
-            trim_line.Crosses(loc, l1_p1));
+    printf("completeOcclusion:%d occlusion0:%d occlusion1:%d\n", completeOcclusion, occlusion0,
+           occlusion1);
+    printf("crosses0:%d crosses1:%d\n", trim_line.Crosses(loc, l1_p0),
+           trim_line.Crosses(loc, l1_p1));
   }
   if (completeOcclusion) {
     if (kDebug) {
@@ -167,11 +151,8 @@ void TrimOcclusion(const Vector2f& loc,
     const Vector2f right_section_end = trim_line.RayIntersection(loc, l1_r0);
     const Vector2f left_section_end = trim_line.RayIntersection(loc, l1_r1);
     if (kDebug) {
-      printf("Right: %f,%f  Left: %f,%f\n",
-              right_section_end.x(),
-              right_section_end.y(),
-              left_section_end.x(),
-              left_section_end.y());
+      printf("Right: %f,%f  Left: %f,%f\n", right_section_end.x(), right_section_end.y(),
+             left_section_end.x(), left_section_end.y());
     }
     trim_line.Set(l2_p0, right_section_end);
     // save the unoccluded part of trim_line at its left hand end, if any
@@ -180,12 +161,12 @@ void TrimOcclusion(const Vector2f& loc,
     }
   } else if (occlusion0) {
     if (kDebug) printf("Case 5: left end occluded\n");
-    //The left hand end of trim_line is occluded, trim it
+    // The left hand end of trim_line is occluded, trim it
     Vector2f right_section_end = trim_line.RayIntersection(loc, l1_r0);
     trim_line.Set(l2_p0, right_section_end);
   } else if (occlusion1) {
     if (kDebug) printf("Case 6: right end occluded\n");
-    //The right hand end of trim_line is occluded, trim it
+    // The right hand end of trim_line is occluded, trim it
     Vector2f left_section_end = trim_line.RayIntersection(loc, l1_r1);
     trim_line.Set(left_section_end, l2_p1);
   } else {
@@ -193,9 +174,7 @@ void TrimOcclusion(const Vector2f& loc,
   }
 }
 
-
-void VectorMap::GetSceneLines(const Vector2f& loc,
-                              float max_range,
+void VectorMap::GetSceneLines(const Vector2f& loc, float max_range,
                               vector<line2f>* lines_list) const {
   const float x_min = loc.x() - max_range;
   const float y_min = loc.y() - max_range;
@@ -211,10 +190,7 @@ void VectorMap::GetSceneLines(const Vector2f& loc,
   }
 }
 
-void VectorMap::SceneRender(const Vector2f& loc,
-                            float max_range,
-                            float angle_min,
-                            float angle_max,
+void VectorMap::SceneRender(const Vector2f& loc, float max_range, float angle_min, float angle_max,
                             vector<line2f>* render) const {
   static const unsigned int MaxLines = 2000;
   const float eps = Sq(FLAGS_min_line_length);
@@ -223,17 +199,17 @@ void VectorMap::SceneRender(const Vector2f& loc,
   GetSceneLines(loc, max_range, &lines_list);
   render->clear();
 
-  for(size_t i = 0; i < lines_list.size() && i < MaxLines; ++i) {
+  for (size_t i = 0; i < lines_list.size() && i < MaxLines; ++i) {
     line2f cur_line = lines_list[i];
     // Check if any part of cur_line is unoccluded by present list of lines,
     // as seen from loc.
-    for(size_t j = 0; j < scene.size() && cur_line.SqLength() >= eps; ++j) {
+    for (size_t j = 0; j < scene.size() && cur_line.SqLength() >= eps; ++j) {
       if (scene[j].SqLength() < eps) continue;
       TrimOcclusion(loc, scene[j], &cur_line, &lines_list);
     }
 
-    if (cur_line.SqLength() > eps) { //At least part of cur_line is unoccluded
-      for(size_t j = 0; j < scene.size(); ++j) {
+    if (cur_line.SqLength() > eps) { // At least part of cur_line is unoccluded
+      for (size_t j = 0; j < scene.size(); ++j) {
         if (scene[j].SqLength() < eps) continue;
         TrimOcclusion(loc, cur_line, &scene[j], &lines_list);
       }
@@ -243,21 +219,16 @@ void VectorMap::SceneRender(const Vector2f& loc,
   }
 
   if (lines_list.size() >= MaxLines) {
-    fprintf(stderr,
-            "Runaway Analytic Scene Render at %.30f,%.30f, %.3f : %.3f\u00b0\n",
-            loc.x(), loc.y(),
-            RadToDeg(angle_min),
-            RadToDeg(angle_max));
+    fprintf(stderr, "Runaway Analytic Scene Render at %.30f,%.30f, %.3f : %.3f\u00b0\n", loc.x(),
+            loc.y(), RadToDeg(angle_min), RadToDeg(angle_max));
   }
-  for(const line2f& l : scene) {
+  for (const line2f& l : scene) {
     if (l.SqLength() > eps) render->push_back(l);
   }
 }
 
-int GetRayIntersection(const Vector2f& loc,
-                       const size_t skip_line_idx,
-                       const vector<line2f>& lines_list,
-                       Vector2f* ray_end) {
+int GetRayIntersection(const Vector2f& loc, const size_t skip_line_idx,
+                       const vector<line2f>& lines_list, Vector2f* ray_end) {
   Vector2f intersection(0, 0);
   int intersecting_line_idx = -1;
   for (size_t i = 0; i < lines_list.size(); ++i) {
@@ -271,9 +242,7 @@ int GetRayIntersection(const Vector2f& loc,
   return intersecting_line_idx;
 }
 
-void VectorMap::RayCast(const Vector2f& loc,
-                        float max_range,
-                        vector<line2f>* render) const {
+void VectorMap::RayCast(const Vector2f& loc, float max_range, vector<line2f>* render) const {
   static const float kEpsilon = 1e-4;
 
   // Small optimization: ignore all lines not within max_range.
@@ -287,8 +256,7 @@ void VectorMap::RayCast(const Vector2f& loc,
   struct RayCastRay {
     Vector2f ray_end;
     int iidx;
-    RayCastRay(const Vector2f& ray_end, int iidx) :
-        ray_end(ray_end), iidx(iidx) {}
+    RayCastRay(const Vector2f& ray_end, int iidx) : ray_end(ray_end), iidx(iidx) {}
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
   // Go through all lines, and check for intersection of rays.
@@ -327,7 +295,6 @@ void VectorMap::RayCast(const Vector2f& loc,
     }
   }
 }
-
 
 void ShrinkLine(float distance, line2f* line) {
   const float len = line->Length();
@@ -390,12 +357,8 @@ bool VectorMap::Intersects(const Vector2f& v0, const Vector2f& v1) const {
   return false;
 }
 
-void VectorMap::GetPredictedScan(const Vector2f& loc,
-                                 float range_min,
-                                 float range_max,
-                                 float angle_min,
-                                 float angle_max,
-                                 int num_rays,
+void VectorMap::GetPredictedScan(const Vector2f& loc, float range_min, float range_max,
+                                 float angle_min, float angle_max, int num_rays,
                                  vector<float>* scan_ptr) {
   static CumulativeFunctionTimer function_timer_(__FUNCTION__);
   CumulativeFunctionTimer::Invocation invoke(&function_timer_);
@@ -423,8 +386,7 @@ void VectorMap::GetPredictedScan(const Vector2f& loc,
     l.a1 = atan2(l.line.p1.y(), l.line.p1.x());
     if (fabs(l.a0 - l.a1) < 0.0001) continue;
     l.wraps_around = fabs(l.a1 - l.a0) > M_PI;
-    if ((l.wraps_around && l.a0 < l.a1) ||
-        (!l.wraps_around && l.a0 > l.a1)) {
+    if ((l.wraps_around && l.a0 < l.a1) || (!l.wraps_around && l.a0 > l.a1)) {
       swap(l.a0, l.a1);
       swap(l.line.p0, l.line.p1);
     }
@@ -450,4 +412,4 @@ void VectorMap::GetPredictedScan(const Vector2f& loc,
   }
 }
 
-}  // namespace vector_map
+} // namespace vector_map

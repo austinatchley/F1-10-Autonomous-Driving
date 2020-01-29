@@ -27,11 +27,11 @@
 #define SRC_UTIL_PTHREAD_UTILS_H_
 
 class ScopedLock {
- public:
+public:
   explicit ScopedLock(pthread_mutex_t* mutex);
   ~ScopedLock();
 
- private:
+private:
   // Disallow default constructors and copy constructors.
   ScopedLock();
   ScopedLock(const ScopedLock&);
@@ -41,12 +41,12 @@ class ScopedLock {
 };
 
 class ScopedTryLock {
- public:
+public:
   explicit ScopedTryLock(pthread_mutex_t* mutex);
   ~ScopedTryLock();
   bool Locked();
 
- private:
+private:
   // Disallow default constructors and copy constructors.
   ScopedTryLock();
   explicit ScopedTryLock(const ScopedLock&);
@@ -59,7 +59,7 @@ class ScopedTryLock {
 
 template <typename T>
 class ThreadSafe {
- public:
+public:
   // Default constructor.
   ThreadSafe() : locked_(false) {
     const int init_error = pthread_mutex_init(&mutex_, NULL);
@@ -131,10 +131,10 @@ class ThreadSafe {
     locked_ = false;
   }
 
- protected:
+protected:
   T value_;
   mutable pthread_mutex_t mutex_;
   mutable bool locked_;
 };
 
-#endif  // SRC_UTIL_PTHREAD_UTILS_H_
+#endif // SRC_UTIL_PTHREAD_UTILS_H_

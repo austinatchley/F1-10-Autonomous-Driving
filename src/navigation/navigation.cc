@@ -19,18 +19,18 @@
 */
 //========================================================================
 
-#include "gflags/gflags.h"
+#include "navigation.h"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
 #include "f1tenth_course/AckermannCurvatureDriveMsg.h"
 #include "f1tenth_course/Pose2Df.h"
 #include "f1tenth_course/VisualizationMsg.h"
+#include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "ros/ros.h"
 #include "shared/math/math_util.h"
-#include "shared/util/timer.h"
 #include "shared/ros/ros_helpers.h"
-#include "navigation.h"
+#include "shared/util/timer.h"
 #include "visualization/visualization.h"
 
 using Eigen::Vector2f;
@@ -50,72 +50,55 @@ VisualizationMsg global_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
 // Epsilon value for handling limited numerical precision.
 const float kEpsilon = 1e-5;
-} //namespace
+} // namespace
 
 namespace navigation {
 
-Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
-    _startTime(now()),
-    _timeOfLastNav(0.f),
-    _navTime(0.f),
-    _rampUpTime(0.f),
-    _timeAtFullVel(0.f),
-    robot_loc_(0, 0),
-    robot_angle_(0),
-    robot_vel_(0, 0),
-    robot_omega_(0),
-    nav_complete_(true),
-    nav_goal_loc_(0, 0),
-    nav_goal_angle_(0) {
-  drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>(
-      "ackermann_curvature_drive", 1);
+Navigation::Navigation(const string& map_file, ros::NodeHandle* n)
+    : _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
+      robot_loc_(0, 0), robot_angle_(0), robot_vel_(0, 0), robot_omega_(0), nav_complete_(true),
+      nav_goal_loc_(0, 0), nav_goal_angle_(0) {
+  drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n->advertise<VisualizationMsg>("visualization", 1);
-  local_viz_msg_ = visualization::NewVisualizationMessage(
-      "base_link", "navigation_local");
-  global_viz_msg_ = visualization::NewVisualizationMessage(
-      "map", "navigation_global");
+  local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
+  global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   InitRosHeader("base_link", &drive_msg_.header);
 }
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
-    std::cout << "set nav goal" << std::endl;
-    _timeOfLastNav = now();
+  std::cout << "set nav goal" << std::endl;
+  _timeOfLastNav = now();
 
-    _rampUpTime = (MAX_VEL - robot_vel_[0]) / MAX_ACCEL;
-    _navTime = 10.f; // TODO: find total nav time
-    _timeAtFullVel = _navTime - 2.f * _rampUpTime;
-    
-    nav_complete_ = false;
+  _rampUpTime = (MAX_VEL - robot_vel_[0]) / MAX_ACCEL;
+  _navTime = 10.f; // TODO: find total nav time
+  _timeAtFullVel = _navTime - 2.f * _rampUpTime;
 
-    // nav_goal_loc_ = loc;
-    // nav_goal_angle_ = angle;
+  nav_complete_ = false;
+
+  // nav_goal_loc_ = loc;
+  // nav_goal_angle_ = angle;
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {
-    // robot_loc_ = loc;
-    // robot_angle_ = angle;
+  // robot_loc_ = loc;
+  // robot_angle_ = angle;
 }
 
-void Navigation::UpdateOdometry(const Vector2f& loc,
-                                float angle,
-                                const Vector2f& vel,
-                                float ang_vel) {
-}
+void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f& vel,
+                                float ang_vel) {}
 
-void Navigation::ObservePointCloud(const vector<Vector2f>& cloud,
-                                   double time) {
-}
+void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
 void Navigation::Run() {
   const float timeSinceLastNav = (now() - _timeOfLastNav) / 1000.f;
 
   AckermannCurvatureDriveMsg msg;
-  if (!nav_complete_ && ((timeSinceLastNav < _rampUpTime) ||
-          (timeSinceLastNav > _navTime - _rampUpTime))) {
+  if (!nav_complete_ &&
+      ((timeSinceLastNav < _rampUpTime) || (timeSinceLastNav > _navTime - _rampUpTime))) {
 
-      msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime);
+    msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime);
   } else {
-      msg.velocity = MAX_VEL;
+    msg.velocity = MAX_VEL;
   }
 
   // msg.curvature = 1.f; // 1m radius of turning
@@ -129,12 +112,14 @@ void Navigation::Run() {
 }
 
 float Navigation::lerp(float a, float b, float t) {
-    if (t > 1.f) { t = 1.f; }
-    return a + t * (b - a);
+  if (t > 1.f) {
+    t = 1.f;
+  }
+  return a + t * (b - a);
 }
 
 float Navigation::now() {
-    return static_cast<float>(std::clock());
+  return static_cast<float>(std::clock());
 }
 
-}  // namespace navigation
+} // namespace navigation

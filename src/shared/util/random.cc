@@ -22,7 +22,6 @@
 
 #include <random>
 
-
 namespace util_random {
 
 double Random::UniformRandom(double a, double b) {
@@ -37,4 +36,4 @@ double Random::Gaussian(const double mean, const double stddev) {
   return mean + stddev * randn_(generator_);
 }
 
-}  // namespace util_random
+} // namespace util_random

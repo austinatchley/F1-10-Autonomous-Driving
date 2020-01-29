@@ -21,8 +21,8 @@
 #include "util/helpers.h"
 
 #include <execinfo.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -70,7 +70,7 @@ std::string ExecuteCommand(const char* cmd) {
 void PrintStackTrace(FILE* file) {
   static const int kMaxTraceDepth = 256;
   static const int kMaxStringLength = 4096;
-  void *trace[kMaxTraceDepth];
+  void* trace[kMaxTraceDepth];
   char str[kMaxStringLength];
 
   time_t t = time(NULL);
@@ -92,7 +92,7 @@ void PrintStackTrace(FILE* file) {
   s.push_back('\n');
 
   // Parse output lines.
-  std::vector<std::pair<std::string, std::string> > lines;
+  std::vector<std::pair<std::string, std::string>> lines;
   size_t maxlen = 0;
   size_t pos1 = 0, pos2 = s.find('\n');
   while (pos2 != std::string::npos) {
@@ -118,16 +118,12 @@ void PrintStackTrace(FILE* file) {
   }
 
   for (size_t i = 0; i < lines.size(); ++i) {
-    printf("%*d: \x1b[33m%-*s\x1b[m \x1b[32m%s\x1b[m\n",
-           num_digits,
-           static_cast<int>(i),
-           static_cast<int>(maxlen),
-           lines[i].first.c_str(),
-           lines[i].second.c_str());
+    printf("%*d: \x1b[33m%-*s\x1b[m \x1b[32m%s\x1b[m\n", num_digits, static_cast<int>(i),
+           static_cast<int>(maxlen), lines[i].first.c_str(), lines[i].second.c_str());
   }
 }
 
 bool FileExists(const std::string& file_name) {
   struct stat st;
-  return(stat(file_name.c_str(), &st) == 0);
+  return (stat(file_name.c_str(), &st) == 0);
 }

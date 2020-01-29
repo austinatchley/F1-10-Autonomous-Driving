@@ -18,24 +18,22 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //========================================================================
 
-
 #include <assert.h>
+#include <cstdarg>
 #include <glog/logging.h>
 #include <stdio.h>
-#include <cstdarg>
 #include <string>
 
 #ifndef SRC_UTIL_HELPERS_H_
 #define SRC_UTIL_HELPERS_H_
 
 // Useful for debug printing.
-#define DEBUG_PRINT_LINE \
-    printf("%s:%d\n", __FILE__, __LINE__); \
-    fflush(stdout);
+#define DEBUG_PRINT_LINE                                                                           \
+  printf("%s:%d\n", __FILE__, __LINE__);                                                           \
+  fflush(stdout);
 
 // Return an std::string created using a printf-like syntax.
-std::string StringPrintf(const char* format, ...)
-    __attribute__((format(__printf__, 1, 2)));
+std::string StringPrintf(const char* format, ...) __attribute__((format(__printf__, 1, 2)));
 
 // Returns an std::string of the result of executing a command @cmd.
 std::string ExecuteCommand(const char* cmd);
@@ -51,15 +49,13 @@ bool FileExists(const std::string& file_name);
 // A simple class wrapper for a file handle that automatically closes the file
 // when the instance of the class is destroyed.
 class ScopedFile {
- public:
+public:
   // Constructor that inherits ownership of a previously opened file.
   explicit ScopedFile(FILE* fid) : fid_(fid) {}
 
   // Constructor that opens the specified file in the specified mode.
-  ScopedFile(const std::string& file_name,
-             const char* mode,
-             bool print_error = false) :
-      fid_(NULL) {
+  ScopedFile(const std::string& file_name, const char* mode, bool print_error = false)
+      : fid_(NULL) {
     Open(file_name, mode, print_error);
   }
 
@@ -74,9 +70,7 @@ class ScopedFile {
   }
 
   // Open a file explicitly.
-  void Open(const std::string& file_name,
-             const char* mode,
-             bool print_error = false) {
+  void Open(const std::string& file_name, const char* mode, bool print_error = false) {
     if (fid_) fclose(fid_);
     fid_ = fopen(file_name.c_str(), mode);
     if (fid_ == NULL) {
@@ -90,12 +84,16 @@ class ScopedFile {
   }
 
   // Getter for the underlying file handle.
-  FILE* operator()() { return (fid_); }
+  FILE* operator()() {
+    return (fid_);
+  }
 
   // Conversion operator to convert to FILE* type.
-  operator FILE*&() { return (fid_); }
+  operator FILE*&() {
+    return (fid_);
+  }
 
- private:
+private:
   static const bool kDebug = false;
 
   // Disable the default constructor.
@@ -111,4 +109,4 @@ class ScopedFile {
   FILE* fid_;
 };
 
-#endif  // SRC_UTIL_HELPERS_H_
+#endif // SRC_UTIL_HELPERS_H_

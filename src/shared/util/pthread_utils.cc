@@ -32,8 +32,8 @@ ScopedLock::~ScopedLock() {
   pthread_mutex_unlock(&mutex_);
 }
 
-ScopedTryLock::ScopedTryLock(pthread_mutex_t* mutex) :
-    locked_(false), checked_(false), mutex_(*mutex) {
+ScopedTryLock::ScopedTryLock(pthread_mutex_t* mutex)
+    : locked_(false), checked_(false), mutex_(*mutex) {
   locked_ = (pthread_mutex_trylock(&mutex_) == 0);
 }
 

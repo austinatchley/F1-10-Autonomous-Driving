@@ -46,8 +46,7 @@ T SumArray(const std::array<T, N>& v) {
 }
 
 template <size_t N, class T>
-T SelectiveSumArray(const std::array<T, N>& v, const std::array<bool, N>& b,
-                    const T zero = 0) {
+T SelectiveSumArray(const std::array<T, N>& v, const std::array<bool, N>& b, const T zero = 0) {
   T acc = zero;
   for (size_t i = 0; i < N; ++i) {
     const auto& e = v[i];
@@ -123,8 +122,7 @@ std::array<T, N> AddToEachElement(const std::array<T, N>& a1, const T& val) {
 }
 
 template <size_t N, class T>
-std::array<T, N> AddArrayElements(const std::array<T, N>& a1,
-                                  const std::array<T, N>& a2) {
+std::array<T, N> AddArrayElements(const std::array<T, N>& a1, const std::array<T, N>& a2) {
   std::array<T, N> ret;
   for (size_t i = 0; i < N; ++i) {
     ret[i] = a1[i] + a2[i];
@@ -133,8 +131,7 @@ std::array<T, N> AddArrayElements(const std::array<T, N>& a1,
 }
 
 template <size_t N, class T>
-std::array<T, N> SubtractArrayElements(const std::array<T, N>& a1,
-                                       const std::array<T, N>& a2) {
+std::array<T, N> SubtractArrayElements(const std::array<T, N>& a1, const std::array<T, N>& a2) {
   std::array<T, N> ret;
   for (size_t i = 0; i < N; ++i) {
     ret[i] = a1[i] - a2[i];
@@ -145,8 +142,7 @@ std::array<T, N> SubtractArrayElements(const std::array<T, N>& a1,
 template <size_t N, class T>
 std::array<T, N> GetIndexedElements(const std::array<std::vector<T>, N>& a,
                                     const std::array<bool, N>& needs_replans,
-                                    const std::array<std::size_t, N>& indices,
-                                    const T& zero) {
+                                    const std::array<std::size_t, N>& indices, const T& zero) {
   std::array<T, N> ret = MakeArray<N>(zero);
   for (size_t i = 0; i < N; ++i) {
     if (needs_replans[i]) {
@@ -172,6 +168,6 @@ size_t MaxDatastructureSize(const std::array<Container, N>& v) {
   return max;
 }
 
-}  // namespace array_util
+} // namespace array_util
 
-#endif  // SRC_UTIL_ARRAY_UTIL_H_
+#endif // SRC_UTIL_ARRAY_UTIL_H_

@@ -33,6 +33,6 @@ int OpenFileForRead(const std::string& file_name);
 std::string GetFolderName();
 std::string GetFullFolderPath();
 
-}  // namespace serialization
-}  // namespace util
-#endif  // SRC_UTIL_SERIALIZATION_H_
+} // namespace serialization
+} // namespace util
+#endif // SRC_UTIL_SERIALIZATION_H_
