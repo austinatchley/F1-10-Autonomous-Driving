@@ -90,11 +90,11 @@ private:
   float _odom_omega;
 
   // Whether navigation is complete.
-  bool nav_complete_;
+  bool _nav_complete;
   // Navigation goal location.
-  Eigen::Vector2f nav_goal_loc_;
+  Eigen::Vector2f _nav_goal_loc;
   // Navigation goal angle.
-  float nav_goal_angle_;
+  float _nav_goal_angle;
 };
 
 } // namespace navigation

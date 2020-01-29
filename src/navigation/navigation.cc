@@ -56,8 +56,8 @@ namespace navigation {
 
 Navigation::Navigation(const string& map_file, ros::NodeHandle* n)
     : _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
-      _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), nav_complete_(true),
-      nav_goal_loc_(0, 0), nav_goal_angle_(0) {
+      _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _nav_complete(true),
+      _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n->advertise<VisualizationMsg>("visualization", 1);
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
@@ -73,7 +73,7 @@ void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   _navTime = 10.f; // TODO: find total nav time
   _timeAtFullVel = _navTime - 2.f * _rampUpTime;
 
-  nav_complete_ = false;
+  _nav_complete = false;
 
   // nav_goal_loc_ = loc;
   // nav_goal_angle_ = angle;
@@ -93,7 +93,7 @@ void Navigation::Run() {
   const float timeSinceLastNav = (now() - _timeOfLastNav) / 1000.f;
 
   AckermannCurvatureDriveMsg msg;
-  if (!nav_complete_) {
+  if (!_nav_complete) {
       if (timeSinceLastNav > _navTime - _rampUpTime) {
           msg.velocity = lerp(MAX_VEL, 0, timeSinceLastNav / _rampUpTime); // decelerate
       } else if (timeSinceLastNav < _rampUpTime) {
