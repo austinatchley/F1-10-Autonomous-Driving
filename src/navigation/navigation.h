@@ -73,17 +73,21 @@ private:
   float _rampUpTime, _timeAtFullVel;
 
   // Current robot location.
-  Eigen::Vector2f robot_loc_;
+  Eigen::Vector2f _world_loc;
   // Current robot orientation.
-  float robot_angle_;
+  float _world_angle;
   // Current robot velocity.
-  Eigen::Vector2f robot_vel_;
+  Eigen::Vector2f _world_vel;
   // Current robot angular speed.
-  float robot_omega_;
+  float _world_omega;
   // Odometry-reported robot location.
-  Eigen::Vector2f odom_loc_;
+  Eigen::Vector2f _odom_loc;
   // Odometry-reported robot angle.
-  float odom_angle_;
+  float _odom_angle;
+  // Odometry-reported robot velocity.
+  Eigen::Vector2f _odom_vel;
+  // Odometry-reported robot angular speed.
+  float _odom_omega;
 
   // Whether navigation is complete.
   bool nav_complete_;

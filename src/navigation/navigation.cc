@@ -56,7 +56,7 @@ namespace navigation {
 
 Navigation::Navigation(const string& map_file, ros::NodeHandle* n)
     : _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
-      robot_loc_(0, 0), robot_angle_(0), robot_vel_(0, 0), robot_omega_(0), nav_complete_(true),
+      _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), nav_complete_(true),
       nav_goal_loc_(0, 0), nav_goal_angle_(0) {
   drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n->advertise<VisualizationMsg>("visualization", 1);
@@ -69,7 +69,7 @@ void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   std::cout << "set nav goal" << std::endl;
   _timeOfLastNav = now();
 
-  _rampUpTime = (MAX_VEL - robot_vel_[0]) / MAX_ACCEL;
+  _rampUpTime = (MAX_VEL - _world_vel[0]) / MAX_ACCEL;
   _navTime = 10.f; // TODO: find total nav time
   _timeAtFullVel = _navTime - 2.f * _rampUpTime;
 
