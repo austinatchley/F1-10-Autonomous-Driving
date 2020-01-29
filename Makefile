@@ -28,6 +28,9 @@ debug_all: | set_debug all
 clean:
 	rm -rf build bin lib
 
+format:
+	clang-format -i src/*.cc src/*.h src/*/*.cc src/*/*.h
+
 build/CMakeLists.txt.copy: CMakeLists.txt Makefile
 	mkdir -p build
 	cd build && cmake -DCMAKE_BUILD_TYPE=$(build_type) \
