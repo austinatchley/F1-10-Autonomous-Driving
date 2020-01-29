@@ -94,16 +94,15 @@ void Navigation::Run() {
 
   AckermannCurvatureDriveMsg msg;
   if (!nav_complete_) {
-      if (timeSinceLastNav < _rampUpTime) {
-          msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime); // accelerate
-      } else if (timeSinceLastNav > _navTime - _rampUpTime) {
+      if (timeSinceLastNav > _navTime - _rampUpTime) {
           msg.velocity = lerp(MAX_VEL, 0, timeSinceLastNav / _rampUpTime); // decelerate
-      }
-      else {
+      } else if (timeSinceLastNav < _rampUpTime) {
+          msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime); // accelerate
+      } else {
           msg.velocity = MAX_VEL;
       }
   } else {
-    msg.velocity = 0;
+      msg.velocity = 0;
   }
 
   // msg.curvature = 1.f; // 1m radius of turning
