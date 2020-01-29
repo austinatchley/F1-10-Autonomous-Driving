@@ -29,7 +29,7 @@ clean:
 	rm -rf build bin lib
 
 format:
-	clang-format -i src/*.cc src/*.h src/*/*.cc src/*/*.h
+	find . -regex '.*\.\(cc\|h\|cpp\)' -exec clang-format -style=file -i {} \;
 
 build/CMakeLists.txt.copy: CMakeLists.txt Makefile
 	mkdir -p build
