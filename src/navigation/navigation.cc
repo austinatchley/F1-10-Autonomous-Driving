@@ -93,12 +93,17 @@ void Navigation::Run() {
   const float timeSinceLastNav = (now() - _timeOfLastNav) / 1000.f;
 
   AckermannCurvatureDriveMsg msg;
-  if (!nav_complete_ &&
-      ((timeSinceLastNav < _rampUpTime) || (timeSinceLastNav > _navTime - _rampUpTime))) {
-
-    msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime);
+  if (!nav_complete_) {
+      if (timeSinceLastNav < _rampUpTime) {
+          msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime); // accelerate
+      } else if (timeSinceLastNav > _navTime - _rampUpTime) {
+          msg.velocity = lerp(MAX_VEL, 0, timeSinceLastNav / _rampUpTime); // decelerate
+      }
+      else {
+          msg.velocity = MAX_VEL;
+      }
   } else {
-    msg.velocity = MAX_VEL;
+    msg.velocity = 0;
   }
 
   // msg.curvature = 1.f; // 1m radius of turning
