@@ -43,6 +43,8 @@ struct PathOption {
 
 class Navigation {
  public:
+  static constexpr float MAX_VEL = 1.f;
+  static constexpr float MAX_ACCEL = 3.f;
 
    // Constructor
   explicit Navigation(const std::string& map_file, ros::NodeHandle* n);
@@ -68,7 +70,11 @@ class Navigation {
  private:
 
   float lerp(float a, float b, float t);
-  float _t, _ramp_up_time, _start_time;
+  float now();
+
+  float _startTime;
+  float _timeOfLastNav, _navTime;
+  float _rampUpTime, _timeAtFullVel;
 
   // Current robot location.
   Eigen::Vector2f robot_loc_;

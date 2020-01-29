@@ -55,9 +55,11 @@ const float kEpsilon = 1e-5;
 namespace navigation {
 
 Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
-    _t(0.f),
-    _ramp_up_time(1000.f),
-    _start_time(static_cast<float>(std::clock())),
+    _startTime(now()),
+    _timeOfLastNav(0.f),
+    _navTime(0.f),
+    _rampUpTime(0.f),
+    _timeAtFullVel(0.f),
     robot_loc_(0, 0),
     robot_angle_(0),
     robot_vel_(0, 0),
@@ -77,9 +79,21 @@ Navigation::Navigation(const string& map_file, ros::NodeHandle* n) :
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
     std::cout << "set nav goal" << std::endl;
+    _timeOfLastNav = now();
+
+    _rampUpTime = (MAX_VEL - robot_vel_[0]) / MAX_ACCEL;
+    _navTime = 10.f; // TODO: find total nav time
+    _timeAtFullVel = _navTime - 2.f * _rampUpTime;
+    
+    nav_complete_ = false;
+
+    // nav_goal_loc_ = loc;
+    // nav_goal_angle_ = angle;
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {
+    // robot_loc_ = loc;
+    // robot_angle_ = angle;
 }
 
 void Navigation::UpdateOdometry(const Vector2f& loc,
@@ -93,16 +107,20 @@ void Navigation::ObservePointCloud(const vector<Vector2f>& cloud,
 }
 
 void Navigation::Run() {
-  // Create Helper functions here
-  // Milestone 1 will fill out part of this class.
-
-  _t += (static_cast<float>(std::clock()) - _start_time) / 1000.f;
+  const float timeSinceLastNav = (now() - _timeOfLastNav) / 1000.f;
 
   AckermannCurvatureDriveMsg msg;
-  msg.velocity = lerp(0, 1, _t / _ramp_up_time);
-  msg.curvature = 1.f; // 1m radius of turning
+  if (!nav_complete_ && ((timeSinceLastNav < _rampUpTime) ||
+          (timeSinceLastNav > _navTime - _rampUpTime))) {
 
-  std::cout << "Time elapsed: " << _t << std::endl;
+      msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime);
+  } else {
+      msg.velocity = MAX_VEL;
+  }
+
+  // msg.curvature = 1.f; // 1m radius of turning
+
+  std::cout << "Time elapsed since last nav command: " << timeSinceLastNav << std::endl;
   std::cout << "Sending velocity: " << msg.velocity << std::endl;
 
   drive_pub_.publish(msg);
@@ -113,6 +131,10 @@ void Navigation::Run() {
 float Navigation::lerp(float a, float b, float t) {
     if (t > 1.f) { t = 1.f; }
     return a + t * (b - a);
+}
+
+float Navigation::now() {
+    return static_cast<float>(std::clock());
 }
 
 }  // namespace navigation
