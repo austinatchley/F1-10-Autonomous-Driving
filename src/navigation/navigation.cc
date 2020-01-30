@@ -27,6 +27,7 @@
 #include "f1tenth_course/VisualizationMsg.h"
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "nav_msgs/Odometry.h"
 #include "ros/ros.h"
 #include "shared/math/math_util.h"
 #include "shared/ros/ros_helpers.h"
@@ -57,12 +58,12 @@ const float kEpsilon = 1e-5;
 
 namespace navigation {
 
-Navigation::Navigation(const string& map_file, ros::NodeHandle* n)
-    : _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
-      _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0),
+Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n)
+    : _n(n), _odom_topic(odom_topic), _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
+      _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
-  drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
-  viz_pub_ = n->advertise<VisualizationMsg>("visualization", 1);
+  drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
+  viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   InitRosHeader("base_link", &drive_msg_.header);
@@ -80,6 +81,13 @@ void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
 
   // nav_goal_loc_ = loc;
   // nav_goal_angle_ = angle;
+}
+
+void Navigation::ResetOdomFrame() {
+  ros::topic::waitForMessage<nav_msgs::Odometry>(_odom_topic, _n);
+  ros::spinOnce();
+
+  _odom_loc_start = _odom_loc;
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {

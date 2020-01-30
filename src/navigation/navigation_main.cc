@@ -124,12 +124,14 @@ int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "navigation", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
-  navigation_ = new Navigation(FLAGS_map, &n);
+  navigation_ = new Navigation(FLAGS_map, FLAGS_odom_topic, n);
 
   ros::Subscriber velocity_sub = n.subscribe(FLAGS_odom_topic, 1, &OdometryCallback);
   ros::Subscriber localization_sub = n.subscribe(FLAGS_loc_topic, 1, &LocalizationCallback);
   ros::Subscriber laser_sub = n.subscribe(FLAGS_laser_topic, 1, &LaserCallback);
   ros::Subscriber goto_sub = n.subscribe("/move_base_simple/goal", 1, &GoToCallback);
+
+  navigation_->ResetOdomFrame();
 
   RateLoop loop(20.0);
   while (run_ && ros::ok()) {
