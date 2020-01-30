@@ -123,7 +123,7 @@ float Navigation::lerp(float a, float b, float t) {
 }
 
 float Navigation::now() {
-  return static_cast<float>(std::clock());
+  return static_cast<float>(ros::Time::now().toSec());
 }
 
 } // namespace navigation
