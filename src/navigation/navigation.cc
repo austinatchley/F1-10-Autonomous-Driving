@@ -114,9 +114,10 @@ void Navigation::Run() {
   const float target_position = 0.5;
 
   // TODO: speed at next timestep
-  const float speed = _toc_speed;
+  const float speed = _odom_vel.norm();
   // position at next timestep
-  const float position = _toc_position + speed * timestep_duration;
+  const float position = (_odom_loc - _odom_loc_start).norm() + speed * timestep_duration;
+  std::cout << (_odom_loc - _odom_loc_start).norm() << std::endl;
 
   const float time_to_stop = speed / MAX_DECEL;
   const float stop_position =
