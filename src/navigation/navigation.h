@@ -43,8 +43,9 @@ struct PathOption {
 
 class Navigation {
 public:
-  static constexpr float MAX_VEL = 1.f;
-  static constexpr float MAX_ACCEL = 3.f;
+  static constexpr float MAX_SPEED = 1.f;
+  static constexpr float MAX_ACCEL = 1.f;
+  static constexpr float MAX_DECEL = 3.f;
 
   // Constructor
   explicit Navigation(const std::string& map_file, ros::NodeHandle* n);
@@ -71,6 +72,10 @@ private:
   float _startTime;
   float _timeOfLastNav, _navTime;
   float _rampUpTime, _timeAtFullVel;
+
+  // current TOC speed output
+  float _toc_position;
+  float _toc_speed;
 
   // Current robot location.
   Eigen::Vector2f _world_loc;

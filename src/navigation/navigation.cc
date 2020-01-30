@@ -32,10 +32,13 @@
 #include "shared/ros/ros_helpers.h"
 #include "shared/util/timer.h"
 #include "visualization/visualization.h"
+#include <algorithm>
 
 using Eigen::Vector2f;
 using f1tenth_course::AckermannCurvatureDriveMsg;
 using f1tenth_course::VisualizationMsg;
+using std::max;
+using std::min;
 using std::string;
 using std::vector;
 
@@ -56,8 +59,8 @@ namespace navigation {
 
 Navigation::Navigation(const string& map_file, ros::NodeHandle* n)
     : _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
-      _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0) {
+      _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0),
+      _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n->advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n->advertise<VisualizationMsg>("visualization", 1);
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
@@ -69,7 +72,7 @@ void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   std::cout << "set nav goal" << std::endl;
   _timeOfLastNav = now();
 
-  _rampUpTime = (MAX_VEL - _world_vel[0]) / MAX_ACCEL;
+  _rampUpTime = (MAX_SPEED - _world_vel[0]) / MAX_ACCEL;
   _navTime = 10.f; // TODO: find total nav time
   _timeAtFullVel = _navTime - 2.f * _rampUpTime;
 
@@ -90,20 +93,32 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
 void Navigation::Run() {
-  const float timeSinceLastNav = (now() - _timeOfLastNav) / 1000.f;
+  const float timeSinceLastNav = now() - _timeOfLastNav;
+
+  const float timestep_duration = 1.0 / 20.0;
+  // TODO: set based on nav target (forwards or backwards)
+  const int direction = 1;
+  const float target_position = 0.5;
+
+  // TODO: speed at next timestep
+  const float speed = _toc_speed;
+  // position at next timestep
+  const float position = _toc_position + speed * timestep_duration;
+
+  const float time_to_stop = speed / MAX_DECEL;
+  const float stop_position =
+      position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
+  if (stop_position > target_position) {
+    // decelerate
+    _toc_speed = max(0.f, _toc_speed - MAX_DECEL * timestep_duration);
+  } else {
+    // accelerate
+    _toc_speed = min(MAX_SPEED, _toc_speed + MAX_ACCEL * timestep_duration);
+  }
+  _toc_position += _toc_speed * timestep_duration;
 
   AckermannCurvatureDriveMsg msg;
-  if (!_nav_complete) {
-      if (timeSinceLastNav > _navTime - _rampUpTime) {
-          msg.velocity = lerp(MAX_VEL, 0, timeSinceLastNav / _rampUpTime); // decelerate
-      } else if (timeSinceLastNav < _rampUpTime) {
-          msg.velocity = lerp(0, MAX_VEL, timeSinceLastNav / _rampUpTime); // accelerate
-      } else {
-          msg.velocity = MAX_VEL;
-      }
-  } else {
-      msg.velocity = 0;
-  }
+  msg.velocity = _toc_speed * direction;
 
   // msg.curvature = 1.f; // 1m radius of turning
 
@@ -123,7 +138,7 @@ float Navigation::lerp(float a, float b, float t) {
 }
 
 float Navigation::now() {
-  return static_cast<float>(ros::Time::now().toSec());
+  return ros::Time::now().toSec();
 }
 
 } // namespace navigation
