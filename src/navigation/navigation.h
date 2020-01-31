@@ -79,7 +79,6 @@ private:
   float _rampUpTime, _timeAtFullVel;
 
   // current TOC speed output
-  float _toc_position;
   float _toc_speed;
 
   // Current robot location.

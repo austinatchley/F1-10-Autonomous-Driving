@@ -130,7 +130,6 @@ void Navigation::Run() {
     // accelerate
     _toc_speed = min(MAX_SPEED, _toc_speed + MAX_ACCEL * timestep_duration);
   }
-  _toc_position += _toc_speed * timestep_duration;
 
   AckermannCurvatureDriveMsg msg;
   msg.velocity = _toc_speed * direction;
