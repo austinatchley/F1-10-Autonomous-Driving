@@ -125,7 +125,7 @@ void Navigation::Run() {
   if (stop_position > target_position) {
     // decelerate
     const float decel = -pow(speed, 2) / (2 * max(0.f, target_position - position));
-    _toc_speed = max(0.f, _toc_speed + decel * timestep_duration);
+    _toc_speed = max(0.f, speed + decel * timestep_duration);
   } else {
     // accelerate
     _toc_speed = min(MAX_SPEED, _toc_speed + MAX_ACCEL * timestep_duration);
