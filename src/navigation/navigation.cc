@@ -114,7 +114,9 @@ void Navigation::Run() {
   const float position = (_odom_loc - _odom_loc_start).norm() + speed * timestep_duration;
   std::cout << (_odom_loc - _odom_loc_start).norm() << std::endl;
 
-  const float time_to_stop = speed / MAX_DECEL;
+  // System latency is ~0.1s
+  const float time_to_stop = (speed / MAX_DECEL) + 0.1;
+
   const float stop_position =
       position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
 
