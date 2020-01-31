@@ -58,9 +58,8 @@ const float kEpsilon = 1e-5;
 
 namespace navigation {
 
-Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n)
-    : _n(n), _odom_topic(odom_topic), _startTime(now()), _timeOfLastNav(0.f), _navTime(0.f), _rampUpTime(0.f), _timeAtFullVel(0.f),
-      _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
+Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n, float target_position)
+    : _n(n), _odom_topic(odom_topic), _startTime(now()), _timeOfLastNav(0.f), _target_position(target_position), _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
@@ -72,10 +71,6 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   std::cout << "set nav goal" << std::endl;
   _timeOfLastNav = now();
-
-  _rampUpTime = (MAX_SPEED - _world_vel[0]) / MAX_ACCEL;
-  _navTime = 10.f; // TODO: find total nav time
-  _timeAtFullVel = _navTime - 2.f * _rampUpTime;
 
   _nav_complete = false;
 
@@ -109,12 +104,12 @@ void Navigation::Run() {
   const float timeSinceLastNav = now() - _timeOfLastNav;
 
   const float timestep_duration = 1.0 / 20.0;
-  // TODO: set based on nav target (forwards or backwards)
-  const int direction = 1;
-  const float target_position = 0.5;
 
-  // TODO: speed at next timestep
+  const int direction = 1; // 1 for forward, -1 for backwards
+
+  // This is the approximate speed at the next time step, as given by odom
   const float speed = _odom_vel.norm();
+
   // position at next timestep
   const float position = (_odom_loc - _odom_loc_start).norm() + speed * timestep_duration;
   std::cout << (_odom_loc - _odom_loc_start).norm() << std::endl;
@@ -122,9 +117,10 @@ void Navigation::Run() {
   const float time_to_stop = speed / MAX_DECEL;
   const float stop_position =
       position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
-  if (stop_position > target_position) {
+
+  if (stop_position > _target_position) {
     // decelerate
-    const float decel = -pow(speed, 2) / (2 * max(0.f, target_position - position));
+    const float decel = -pow(speed, 2) / (2 * max(0.f, _target_position - position));
     _toc_speed = max(0.f, speed + decel * timestep_duration);
   } else {
     // accelerate
@@ -140,8 +136,6 @@ void Navigation::Run() {
   std::cout << "Sending velocity: " << msg.velocity << std::endl;
 
   drive_pub_.publish(msg);
-
-  // Milestone 3 will complete the rest of navigation.
 }
 
 float Navigation::lerp(float a, float b, float t) {
