@@ -54,7 +54,7 @@ Trial runs on robot:
 2m at max speed 0.5m/s
 
 Run | Encoder distance
----
+--- | ---
 1 | 2.0269
 2 | 2.0159
 3 | 2.0143
