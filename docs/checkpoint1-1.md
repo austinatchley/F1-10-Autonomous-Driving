@@ -62,8 +62,9 @@ Run | Encoder distance
 Average error: 0.019m
 
 ## 7. Video of code on real car
-[https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp](2m/s max speed)
-[https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K](0.5m/s max speed)
+[2m/s max speed](https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp)
+
+[0.5m/s max speed](https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K)
 
 ## 8. Future improvements:
 We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. We were thinking of doing something similar to a PID controller, but this would have to happen once every tick, so it can't be too resource intensive.
