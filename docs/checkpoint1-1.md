@@ -49,6 +49,18 @@ Logan - Kinematic calculations, using odometry data to track position and veloci
 ## 7. Video Demo
 [https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing](https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing)
 
+Trial runs on robot:
+
+2m at max speed 0.5m/s
+
+Run | Encoder distance
+---
+1 | 2.0269
+2 | 2.0159
+3 | 2.0143
+
+Average error: 0.019m
+
 ## 8. Future improvements:
 We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. We were thinking of doing something similar to a PID controller, but this would have to happen once every tick, so it can't be too resource intensive.
 
