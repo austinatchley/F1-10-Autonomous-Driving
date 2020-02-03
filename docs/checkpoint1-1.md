@@ -29,24 +29,24 @@ We predict where the car will be on the next timestep. If the car is not at full
 
 We use basic kinematic equations to make these calculations. In particular, we solve `x=vt+(1/2)at^2` to compute distances and `v^2=v0^2+2aΔx` to compute deceleration. We take the velocity we've calculated with these equations and send it to the car with `ros::Publisher::publish`.
 
-## 3. Parameter tuning:
+### Parameter tuning:
 
 Adjusted steering offset by doing a rough binary search and visually confirming driving straightness.
 
-## 4. Challenges faced:
+## 3. Challenges faced:
 
 The main challenge we faced was reconciling the speed we calculated with the speed we received from the odometer readings. We weren't exactly sure how to combine the two pieces of data at first, but we came up with a solution that seems to work well enough so that our car lands within +-0.05m over 2m in the simulation. We will continue to improve the calculations in the coming checkpoints.
 
-## 5. Contributions of each team member:
+## 4. Contributions of each team member:
 
 Austin - Initial structure, dead reckoning, and external tooling setup for the rest of the semester
 
 Logan - Kinematic calculations, using odometry data to track position and velocity
 
-## 6. GitHub Repo
+## 5. GitHub Repo
 [https://github.com/austinatchley/F1-10-Autonomous-Driving](https://github.com/austinatchley/F1-10-Autonomous-Driving)
 
-## 7. Video Demo
+## 6. Video Demo
 [https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing](https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing)
 
 Trial runs on robot:
@@ -60,6 +60,10 @@ Run | Encoder distance
 3 | 2.0143
 
 Average error: 0.019m
+
+## 7. Video of code on real car
+[https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp](2m/s max speed)
+[https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K](0.5m/s max speed)
 
 ## 8. Future improvements:
 We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. We were thinking of doing something similar to a PID controller, but this would have to happen once every tick, so it can't be too resource intensive.
