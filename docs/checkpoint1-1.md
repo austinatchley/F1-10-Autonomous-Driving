@@ -49,9 +49,16 @@ Logan - Kinematic calculations, using odometry data to track position and veloci
 ## 6. Video Demo
 [https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing](https://drive.google.com/file/d/1jy1_ZjBqPbRSO6X4pS_B2Ihz2VXAvf-o/view?usp=sharing)
 
-Trial runs on robot:
+Demo shows car moving 2m (one grid tile.)
 
-2m at max speed 0.5m/s
+Simulated odometry shows distance error consistently less than 1cm.
+
+
+## 7. Video of code on real car
+
+Demos show car moving 2m.
+
+[0.5m/s max speed](https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp)
 
 Run | Encoder distance
 --- | ---
@@ -61,10 +68,7 @@ Run | Encoder distance
 
 Average error: 0.019m
 
-## 7. Video of code on real car
-[0.5m/s max speed](https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp)
-
-[2m/s max speed](https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K)
+[1m/s max speed](https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K)
 
 ## 8. Future improvements:
 We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. We were thinking of doing something similar to a PID controller, but this would have to happen once every tick, so it can't be too resource intensive.
