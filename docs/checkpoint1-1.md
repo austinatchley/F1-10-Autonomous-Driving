@@ -1,5 +1,9 @@
 # Checkpoint 1.1 Progress Report
 
+Logan Zartman
+
+Austin Atchley
+
 ## 1. Mathematical computation of our 1-D time optimal controller:
    Let `Vo` be the velocity as reported by odometry. 
    Let `Xo` be the distance travelled as computed by the distance between the initial odometry-reported location and the current odometry-reported location.
@@ -51,27 +55,29 @@ Logan - Kinematic calculations, using odometry data to track position and veloci
 
 Demo shows car moving 2m (one grid tile.)
 
-Simulated odometry shows distance error consistently less than 1cm.
+Simulated odometry indicated distance error consistently less than 1cm.
 
 
 ## 7. Video of code on real car
 
 Demos show car moving 2m.
 
-[0.5m/s max speed](https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp)
+### 0.5m/s max speed
+[https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp](https://drive.google.com/open?id=1eaX8Jz-jSqix1y5RraKjuk0GFxDMnGIp)
 
 Run | Encoder distance
 --- | ---
-1 | 2.0269
-2 | 2.0159
-3 | 2.0143
+1 | 2.0269m
+2 | 2.0159m
+3 | 2.0143m
 
 Average error: 0.019m
 
-[1m/s max speed](https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K)
+### 1.0m/s max speed
+[https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K](https://drive.google.com/open?id=1edVffU4A8XDwHRRnZ1pdLsrAussCRl6K)
 
 ## 8. Future improvements:
-We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. We were thinking of doing something similar to a PID controller, but this would have to happen once every tick, so it can't be too resource intensive.
+We would like to have `_toc_speed` and `speed` readings converge. That is to say, we want to take our two separate speeds and get more accurate results as a result of having more data. Right now, we aren't sure if our method is the most correct way of combining the two readings. Additionally, we considered adjusting the velocity output using something like to a PID controller.
 
 Obviously, we would like the car to be able to go in other directions. This is for the next checkpoint.
 
