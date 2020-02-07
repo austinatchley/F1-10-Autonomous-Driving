@@ -70,6 +70,8 @@ public:
 private:
   float _now();
 
+  void _time_integrate();
+
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
   ros::NodeHandle& _n;
@@ -83,7 +85,9 @@ private:
   // current TOC speed output
   float _toc_speed = 0.f;
 
-  Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f);
+  float _distance = 0.f; // distance travelled in odom frame
+  Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f); // position in odom frame
+  Eigen::Vector2f _velocity = Eigen::Vector2f(0.f, 0.f); // velocity in odom frame
 
   // Current robot location.
   Eigen::Vector2f _world_loc;

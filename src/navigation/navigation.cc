@@ -84,6 +84,7 @@ void Navigation::ResetOdomFrame() {
   ros::spinOnce();
 
   _odom_loc_start = _odom_loc;
+  _prev_odom_loc = _odom_loc;
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {
@@ -101,36 +102,38 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
-void Navigation::Run() {
-  const float timeSinceLastNav = _now() - _timeOfLastNav;
-
-  const float timestep_duration = 1.0 / 20.0;
-
-  const int direction = 1; // 1 for forward, -1 for backwards
-
-  // This is the approximate speed at the next time step, as given by odom
-  const float speed = _odom_vel.norm();
-
-  // position at next timestep
-  const float theta = _odom_angle - _prev_odom_angle;
-  const Vector2f relative_position = _get_relative_coord(_odom_loc, _prev_odom_loc, theta);
-  _position += relative_position; 
+void Navigation::_time_integrate() {
+  // TODO: better integrator
+  const float d_theta = _odom_angle - _prev_odom_angle;
+  _velocity = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
+  _position += _velocity;
+  _distance += _velocity.norm();
 
   _prev_odom_angle = _odom_angle;
   _prev_odom_loc = _odom_loc;
+}
 
-  // TODO: integrate this
-  float distance = relative_position.norm();
+void Navigation::Run() {
+  const float timeSinceLastNav = _now() - _timeOfLastNav;
+  const float timestep_duration = 1.0 / 20.0;
+
+  _time_integrate();
+
+  const int direction = 1; // 1 for forward, -1 for backwards
+
+  // approximate values of 1D position and speed at NEXT TIME STEP
+  const float speed = _velocity.norm();
+  const float position = _distance + speed * timestep_duration;
 
   // System latency is ~0.1s
   const float time_to_stop = (speed / MAX_DECEL) + 0.1;
 
   const float stop_position =
-      distance + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
+      position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
 
   if (stop_position > _target_position) {
     // decelerate
-    const float decel = -pow(speed, 2) / (2 * max(0.f, _target_position - distance));
+    const float decel = -pow(speed, 2) / (2 * max(0.f, _target_position - position));
     _toc_speed = max(0.f, speed + decel * timestep_duration);
   } else {
     // accelerate
@@ -139,6 +142,7 @@ void Navigation::Run() {
 
   AckermannCurvatureDriveMsg msg;
   msg.velocity = _toc_speed * direction;
+  msg.curvature = _target_curvature;
 
   // msg.curvature = 1.f; // 1m radius of turning
 
@@ -152,9 +156,8 @@ float Navigation::_now() {
   return ros::Time::now().toSec();
 }
 
-Vector2f _get_relative_coord(Vector2f v1, Vector2f v2, float theta) {
+Vector2f Navigation::_get_relative_coord(Vector2f v1, Vector2f v2, float theta) {
   const Rotation2D<float> rotation(-theta);
-
   return rotation * (v2 - v1);
 }
 
