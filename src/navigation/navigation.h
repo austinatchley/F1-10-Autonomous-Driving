@@ -81,7 +81,9 @@ private:
   float _target_curvature;
 
   // current TOC speed output
-  float _toc_speed;
+  float _toc_speed = 0.f;
+
+  Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f);
 
   // Current robot location.
   Eigen::Vector2f _world_loc;
@@ -94,10 +96,17 @@ private:
 
   // Odometry-reported robot location.
   Eigen::Vector2f _odom_loc;
+  // Odometry-reported location from the last time step
+  Eigen::Vector2f _prev_odom_loc = Eigen::Vector2f(0.f, 0.f); 
+
   // Odometry-reported robot angle.
   float _odom_angle;
+  // Odometry-reported angle from the last time step
+  float _prev_odom_angle = 0.f;
+
   // Odometry-reported robot velocity.
   Eigen::Vector2f _odom_vel;
+
   // Odometry-reported robot angular speed.
   float _odom_omega;
 

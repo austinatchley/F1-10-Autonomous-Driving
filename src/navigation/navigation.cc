@@ -60,7 +60,7 @@ const float kEpsilon = 1e-5;
 namespace navigation {
 
 Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n, float target_position, float target_curvature)
-    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f), _target_position(target_position), _target_curvature(target_curvature), _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
+    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f), _target_position(target_position), _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
@@ -112,18 +112,25 @@ void Navigation::Run() {
   const float speed = _odom_vel.norm();
 
   // position at next timestep
-  const float position = (_odom_loc - _odom_loc_start).norm() + speed * timestep_duration;
-  std::cout << (_odom_loc - _odom_loc_start).norm() << std::endl;
+  const float theta = _odom_angle - _prev_odom_angle;
+  const Vector2f relative_position = _get_relative_coord(_odom_loc, _prev_odom_loc, theta);
+  _position += relative_position; 
+
+  _prev_odom_angle = _odom_angle;
+  _prev_odom_loc = _odom_loc;
+
+  // TODO: integrate this
+  float distance = relative_position.norm();
 
   // System latency is ~0.1s
   const float time_to_stop = (speed / MAX_DECEL) + 0.1;
 
   const float stop_position =
-      position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
+      distance + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
 
   if (stop_position > _target_position) {
     // decelerate
-    const float decel = -pow(speed, 2) / (2 * max(0.f, _target_position - position));
+    const float decel = -pow(speed, 2) / (2 * max(0.f, _target_position - distance));
     _toc_speed = max(0.f, speed + decel * timestep_duration);
   } else {
     // accelerate
