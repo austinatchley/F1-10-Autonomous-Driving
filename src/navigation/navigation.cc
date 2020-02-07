@@ -36,6 +36,7 @@
 #include <algorithm>
 
 using Eigen::Vector2f;
+using Eigen::Rotation2D;
 using f1tenth_course::AckermannCurvatureDriveMsg;
 using f1tenth_course::VisualizationMsg;
 using std::max;
@@ -59,7 +60,7 @@ const float kEpsilon = 1e-5;
 namespace navigation {
 
 Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n, float target_position, float target_curvature)
-    : _n(n), _odom_topic(odom_topic), _startTime(now()), _timeOfLastNav(0.f), _target_position(target_position), _target_curvature(target_curvature), _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
+    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f), _target_position(target_position), _target_curvature(target_curvature), _toc_speed(0), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
@@ -70,7 +71,7 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   std::cout << "set nav goal" << std::endl;
-  _timeOfLastNav = now();
+  _timeOfLastNav = _now();
 
   _nav_complete = false;
 
@@ -101,7 +102,7 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
 void Navigation::Run() {
-  const float timeSinceLastNav = now() - _timeOfLastNav;
+  const float timeSinceLastNav = _now() - _timeOfLastNav;
 
   const float timestep_duration = 1.0 / 20.0;
 
@@ -140,15 +141,14 @@ void Navigation::Run() {
   drive_pub_.publish(msg);
 }
 
-float Navigation::lerp(float a, float b, float t) {
-  if (t > 1.f) {
-    t = 1.f;
-  }
-  return a + t * (b - a);
+float Navigation::_now() {
+  return ros::Time::now().toSec();
 }
 
-float Navigation::now() {
-  return ros::Time::now().toSec();
+Vector2f _get_relative_coord(Vector2f v1, Vector2f v2, float theta) {
+  const Rotation2D<float> rotation(-theta);
+
+  return rotation * (v2 - v1);
 }
 
 } // namespace navigation

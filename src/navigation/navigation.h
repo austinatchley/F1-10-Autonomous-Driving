@@ -68,8 +68,9 @@ public:
   void ResetOdomFrame();
 
 private:
-  float lerp(float a, float b, float t);
-  float now();
+  float _now();
+
+  Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
   ros::NodeHandle& _n;
   const std::string& _odom_topic;
