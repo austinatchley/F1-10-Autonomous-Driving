@@ -48,7 +48,8 @@ public:
   static constexpr float MAX_DECEL = 3.f;
 
   // Constructor
-  explicit Navigation(const std::string& map_file, const std::string& odom_topic, ros::NodeHandle& n, float target_position, float target_curvature);
+  explicit Navigation(const std::string& map_file, const std::string& odom_topic,
+                      ros::NodeHandle& n, float target_position, float target_curvature);
 
   // Used in callback from localization to update position.
   void UpdateLocation(const Eigen::Vector2f& loc, float angle);
@@ -85,7 +86,7 @@ private:
   // current TOC speed output
   float _toc_speed = 0.f;
 
-  float _distance = 0.f; // distance travelled in odom frame
+  float _distance = 0.f;                                 // distance travelled in odom frame
   Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f); // position in odom frame
   Eigen::Vector2f _velocity = Eigen::Vector2f(0.f, 0.f); // velocity in odom frame
 
@@ -101,7 +102,7 @@ private:
   // Odometry-reported robot location.
   Eigen::Vector2f _odom_loc;
   // Odometry-reported location from the last time step
-  Eigen::Vector2f _prev_odom_loc = Eigen::Vector2f(0.f, 0.f); 
+  Eigen::Vector2f _prev_odom_loc = Eigen::Vector2f(0.f, 0.f);
 
   // Odometry-reported robot angle.
   float _odom_angle;

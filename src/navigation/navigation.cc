@@ -35,8 +35,8 @@
 #include "visualization/visualization.h"
 #include <algorithm>
 
-using Eigen::Vector2f;
 using Eigen::Rotation2D;
+using Eigen::Vector2f;
 using f1tenth_course::AckermannCurvatureDriveMsg;
 using f1tenth_course::VisualizationMsg;
 using std::max;
@@ -59,8 +59,11 @@ const float kEpsilon = 1e-5;
 
 namespace navigation {
 
-Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n, float target_position, float target_curvature)
-    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f), _target_position(target_position), _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0,0), _odom_loc_start(0,0),
+Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n,
+                       float target_position, float target_curvature)
+    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f),
+      _target_position(target_position), _target_curvature(target_curvature), _world_loc(0, 0),
+      _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
@@ -104,7 +107,7 @@ void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {
 
 void Navigation::_time_integrate() {
   const float timestep_duration = 1.0 / 20.0;
-    
+
   // TODO: better integrator
   const float d_theta = _odom_angle - _prev_odom_angle;
   const Vector2f d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
