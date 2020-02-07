@@ -103,11 +103,14 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
 void Navigation::_time_integrate() {
+  const float timestep_duration = 1.0 / 20.0;
+    
   // TODO: better integrator
   const float d_theta = _odom_angle - _prev_odom_angle;
-  _velocity = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
-  _position += _velocity;
-  _distance += _velocity.norm();
+  const Vector2f d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
+  _velocity = d_x / timestep_duration;
+  _position += d_x;
+  _distance += d_x.norm();
 
   _prev_odom_angle = _odom_angle;
   _prev_odom_loc = _odom_loc;
