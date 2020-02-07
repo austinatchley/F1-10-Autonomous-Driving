@@ -117,8 +117,15 @@ void Navigation::_time_integrate() {
 }
 
 void Navigation::Run() {
-  const float timeSinceLastNav = _now() - _timeOfLastNav;
+  const float time_control = _now();
+  const float timeSinceLastNav = time_control - _timeOfLastNav;
+
   const float timestep_duration = 1.0 / 20.0;
+  // const float system_latency = 0.1f;
+  // const float time_sensor_data = now - system_latency;
+
+  // TODO: Is this correct? Or do we know more about when this happens?
+  // const float time_actuation = now + 2 * system_latency;
 
   _time_integrate();
 
@@ -128,7 +135,6 @@ void Navigation::Run() {
   const float speed = _velocity.norm();
   const float position = _distance + speed * timestep_duration;
 
-  // System latency is ~0.1s
   const float time_to_stop = (speed / MAX_DECEL) + 0.1;
 
   const float stop_position =
