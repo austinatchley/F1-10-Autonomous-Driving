@@ -65,7 +65,8 @@ DEFINE_string(loc_topic, "localization", "Name of ROS topic for localization");
 DEFINE_string(init_topic, "initialpose", "Name of ROS topic for initialization");
 DEFINE_string(map, "maps/GDC1.txt", "Name of vector map file");
 
-DEFINE_double(dist, 1.0, "Distance for 1D TOC");
+DEFINE_double(dist, 1.0, "Float distance for 1D TOC");
+DEFINE_double(curv, 0.0, "Float curvature value");
 
 bool run_ = true;
 sensor_msgs::LaserScan last_laser_msg_;
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
   // Initialize ROS.
   ros::init(argc, argv, "navigation", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
-  navigation_ = new Navigation(FLAGS_map, FLAGS_odom_topic, n, FLAGS_dist);
+  navigation_ = new Navigation(FLAGS_map, FLAGS_odom_topic, n, FLAGS_dist, FLAGS_curv);
 
   ros::Subscriber velocity_sub = n.subscribe(FLAGS_odom_topic, 1, &OdometryCallback);
   ros::Subscriber localization_sub = n.subscribe(FLAGS_loc_topic, 1, &LocalizationCallback);

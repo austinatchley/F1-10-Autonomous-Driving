@@ -48,7 +48,7 @@ public:
   static constexpr float MAX_DECEL = 3.f;
 
   // Constructor
-  explicit Navigation(const std::string& map_file, const std::string& odom_topic, ros::NodeHandle& n, float target_position);
+  explicit Navigation(const std::string& map_file, const std::string& odom_topic, ros::NodeHandle& n, float target_position, float target_curvature);
 
   // Used in callback from localization to update position.
   void UpdateLocation(const Eigen::Vector2f& loc, float angle);
@@ -77,6 +77,7 @@ private:
   float _startTime;
   float _timeOfLastNav;
   float _target_position;
+  float _target_curvature;
 
   // current TOC speed output
   float _toc_speed;
