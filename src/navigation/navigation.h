@@ -44,7 +44,7 @@ struct PathOption {
 class Navigation {
 public:
   static constexpr float MAX_SPEED = 1.f;
-  static constexpr float MAX_ACCEL = 1.f;
+  static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
 
   // Constructor
