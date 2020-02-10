@@ -121,7 +121,7 @@ void Navigation::_time_integrate() {
 
 void Navigation::Run() {
   constexpr float timestep_duration = 1.0 / 20.0;
-  constexpr float system_latency = 0.1f;
+  constexpr float system_latency = 0.085f;
   constexpr float actuation_latency = system_latency;
   // const float time_sensor_data = now - system_latency;
 
