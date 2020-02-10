@@ -120,40 +120,50 @@ void Navigation::_time_integrate() {
 }
 
 void Navigation::Run() {
-  const float timestep_duration = 1.0 / 20.0;
-  const float system_latency = 0.1f;
+  constexpr float timestep_duration = 1.0 / 20.0;
+  constexpr float system_latency = 0.1f;
+  constexpr float actuation_latency = system_latency;
   // const float time_sensor_data = now - system_latency;
-
-  // TODO: Is this correct? Or do we know more about when this happens?
-  // const float time_actuation = now + 2 * system_latency;
 
   _time_integrate();
 
   Vector2f direction(1, 0); // 1 for forward, -1 for backwards
 
-  // approximate values of 1D position and speed at NEXT TIME STEP
-  const float speed = _velocity.norm();
-  const float position = _distance + speed * timestep_duration;
+  // past state at sensor read
+  const float sensor_speed = _velocity.norm();
+  const float sensor_position = _distance;
   
-  const float predicted_speed = speed + (_last_accel * system_latency);
-  const float predicted_position = position + (predicted_speed * system_latency);
+  // predicted current state accounting for sense -> run latency 
+  const float current_speed = sensor_speed + (_last_accel * system_latency);
+  const float current_position = sensor_position + (sensor_speed * system_latency) + 0.5 * (_last_accel * pow(system_latency, 2));
 
-  const float time_to_stop = (predicted_speed / MAX_DECEL) + system_latency;
+  // predicted future state at actuation of output from this control frame
+  const float actuation_speed = current_speed; // assumes we have already reached previous output velocity;
+                                               // we will not accelerate until actuation
+  const float actuation_position = current_position + (current_speed * actuation_latency); // no acceleration
 
-  const float stop_position =
-      predicted_position + (speed * time_to_stop) + (0.5 * MAX_DECEL * pow(time_to_stop, 2));
+  // predicted position at which car will come to rest
+  const float stop_position = actuation_position + (-actuation_speed / (2.f * MAX_DECEL));
 
-  float accel = 0.f;
-  float calc_speed = 0.f;
+  // what's wrong: we are a frame behind. we should predict another frame between
+  // current and actuation (i.e. if we accelerate this frame, will we be too far
+  // in the next frame?) 
+  // This may be where measured control -> control latency is relevant.
+
+  float output_accel = 0.f;
+  float output_speed = 0.f;
   if (stop_position > _target_position) {
     // decelerate
-    accel = -pow(predicted_speed, 2) / (2 * max(0.f, _target_position - predicted_position));
-    calc_speed = predicted_speed;
+    output_accel = -pow(actuation_speed, 2) / (2 * max(0.f, _target_position - actuation_position));
+    output_speed = actuation_speed;
   } else {
-    accel = MAX_ACCEL;
-    calc_speed = _toc_speed;
+    output_accel = MAX_ACCEL;
+    output_speed = _toc_speed;
   }
-  _toc_speed = min(MAX_SPEED, max(0.f, calc_speed + accel * timestep_duration));
+
+  // integrate desired acceleration
+  _toc_speed = min(MAX_SPEED, max(0.f, output_speed + output_accel * timestep_duration));
+  _last_accel = output_accel;
 
   // Normalize the direction so we don't get a velocity greater than max
   direction = direction / direction.norm();
@@ -164,8 +174,8 @@ void Navigation::Run() {
 
   // msg.curvature = 1.f; // 1m radius of turning
 
-  std::cout << "speed=" << speed << std::endl; 
-  std::cout << "position=" << position << std::endl; 
+  std::cout << "sensor_speed=" << sensor_speed << std::endl; 
+  std::cout << "sensor_position=" << sensor_position << std::endl; 
   std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
   std::cout << "_target_position=" << _target_position << std::endl; 
   std::cout << "stop_position=" << stop_position << std::endl; 
@@ -173,8 +183,6 @@ void Navigation::Run() {
   std::cout << std::endl;
 
   drive_pub_.publish(msg);
-
-  _last_accel = accel;
 }
 
 float Navigation::_now() {
