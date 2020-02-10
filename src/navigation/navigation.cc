@@ -143,7 +143,8 @@ void Navigation::Run() {
   const float actuation_position = current_position + (current_speed * actuation_latency); // no acceleration
 
   // predicted position at which car will come to rest
-  const float stop_position = actuation_position + (-actuation_speed / (2.f * MAX_DECEL));
+  const float time_to_stop = actuation_speed / MAX_DECEL; 
+  const float stop_position = actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
 
   // what's wrong: we are a frame behind. we should predict another frame between
   // current and actuation (i.e. if we accelerate this frame, will we be too far
