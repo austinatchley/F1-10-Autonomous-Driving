@@ -129,7 +129,7 @@ void Navigation::Run() {
 
   _time_integrate();
 
-  const int direction = 1; // 1 for forward, -1 for backwards
+  Vector2f direction(1, 0); // 1 for forward, -1 for backwards
 
   // approximate values of 1D position and speed at NEXT TIME STEP
   const float speed = _velocity.norm();
@@ -149,8 +149,11 @@ void Navigation::Run() {
     _toc_speed = min(MAX_SPEED, _toc_speed + MAX_ACCEL * timestep_duration);
   }
 
+  // Normalize the direction so we don't get a velocity greater than max
+  direction = direction / direction.norm();
+
   AckermannCurvatureDriveMsg msg;
-  msg.velocity = _toc_speed * direction;
+  msg.velocity = _toc_speed * direction[0];
   msg.curvature = _target_curvature;
 
   // msg.curvature = 1.f; // 1m radius of turning
