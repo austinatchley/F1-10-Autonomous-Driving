@@ -90,6 +90,8 @@ private:
   Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f); // position in odom frame
   Eigen::Vector2f _velocity = Eigen::Vector2f(0.f, 0.f); // velocity in odom frame
 
+  float _last_accel = 0.f;
+
   // Current robot location.
   Eigen::Vector2f _world_loc;
   // Current robot orientation.
