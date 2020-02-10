@@ -120,9 +120,6 @@ void Navigation::_time_integrate() {
 }
 
 void Navigation::Run() {
-  const float time_control = _now();
-  const float timeSinceLastNav = time_control - _timeOfLastNav;
-
   const float timestep_duration = 1.0 / 20.0;
   // const float system_latency = 0.1f;
   // const float time_sensor_data = now - system_latency;
@@ -158,8 +155,13 @@ void Navigation::Run() {
 
   // msg.curvature = 1.f; // 1m radius of turning
 
-  std::cout << "Time elapsed since last nav command: " << timeSinceLastNav << std::endl;
+  std::cout << "speed=" << speed << std::endl; 
+  std::cout << "position=" << position << std::endl; 
+  std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
+  std::cout << "_target_position=" << _target_position << std::endl; 
+  std::cout << "stop_position=" << stop_position << std::endl; 
   std::cout << "Sending velocity: " << msg.velocity << std::endl;
+  std::cout << std::endl;
 
   drive_pub_.publish(msg);
 }
