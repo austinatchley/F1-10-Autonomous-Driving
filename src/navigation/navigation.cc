@@ -155,8 +155,13 @@ void Navigation::Run() {
   float output_speed = 0.f;
   if (stop_position > _target_position) {
     // decelerate
-    output_accel = -pow(actuation_speed, 2) / (2 * max(0.f, _target_position - actuation_position));
-    output_speed = actuation_speed;
+    const float remaining_distance = _target_position - actuation_position;
+    if (remaining_distance > 0) {
+      output_accel = -pow(actuation_speed, 2) / (2 * remaining_distance);
+      output_speed = actuation_speed;
+    } else {
+      output_accel = 0.f;
+    }
   } else {
     output_accel = MAX_ACCEL;
     output_speed = _toc_speed;
@@ -175,11 +180,13 @@ void Navigation::Run() {
 
   // msg.curvature = 1.f; // 1m radius of turning
 
+  std::cout << "_velocity=" << _velocity << std::endl; 
   std::cout << "sensor_speed=" << sensor_speed << std::endl; 
   std::cout << "sensor_position=" << sensor_position << std::endl; 
   std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
   std::cout << "_target_position=" << _target_position << std::endl; 
   std::cout << "stop_position=" << stop_position << std::endl; 
+  std::cout << "_last_accel=" << _last_accel << std::endl; 
   std::cout << "Sending velocity: " << msg.velocity << std::endl;
   std::cout << std::endl;
 
