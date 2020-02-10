@@ -109,10 +109,10 @@ void Navigation::_time_integrate() {
   const float timestep_duration = 1.0 / 20.0;
 
   // TODO: better integrator
-  const float d_theta = _odom_angle - _prev_odom_angle;
-  const Vector2f d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
+  // const float d_theta = _odom_angle - _prev_odom_angle;
+  // const Vector2f rel_d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
+  const Vector2f d_x = _odom_loc - _prev_odom_loc;
   _velocity = d_x / timestep_duration;
-  _position += d_x;
   _distance += d_x.norm();
 
   _prev_odom_angle = _odom_angle;
