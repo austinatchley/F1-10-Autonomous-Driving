@@ -46,6 +46,9 @@ public:
   static constexpr float MAX_SPEED = 1.f;
   static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
+  static constexpr float TIMESTEP = 1.f / 20.f;
+  static constexpr float LATENCY = 0.085f;
+  static constexpr float ACTUATION_LATENCY = LATENCY;
 
   // Constructor
   explicit Navigation(const std::string& map_file, const std::string& odom_topic,
@@ -72,6 +75,7 @@ private:
   float _now();
 
   void _time_integrate();
+  void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 

@@ -106,51 +106,20 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
 
 void Navigation::_time_integrate() {
-  const float timestep_duration = 1.0 / 20.0;
+  const float TIMESTEP = 1.0 / 20.0;
 
   // TODO: better integrator
   // const float d_theta = _odom_angle - _prev_odom_angle;
   // const Vector2f rel_d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
   const Vector2f d_x = _odom_loc - _prev_odom_loc;
-  _velocity = d_x / timestep_duration;
+  _velocity = d_x / TIMESTEP;
   _distance += d_x.norm();
 
   _prev_odom_angle = _odom_angle;
   _prev_odom_loc = _odom_loc;
 }
 
-void Navigation::Run() {
-  constexpr float timestep_duration = 1.0 / 20.0;
-  constexpr float system_latency = 0.085f;
-  constexpr float actuation_latency = system_latency;
-  // const float time_sensor_data = now - system_latency;
-
-  _time_integrate();
-
-  Vector2f direction(1, 0); // 1 for forward, -1 for backwards
-
-  // past state at sensor read
-  const float sensor_speed = _velocity.norm();
-  const float sensor_position = _distance;
-  
-  // predicted current state accounting for sense -> run latency 
-  const float current_speed = sensor_speed + (_last_accel * system_latency);
-  const float current_position = sensor_position + (sensor_speed * system_latency) + 0.5 * (_last_accel * pow(system_latency, 2));
-
-  // predicted future state at actuation of output from this control frame
-  const float actuation_speed = current_speed; // assumes we have already reached previous output velocity;
-                                               // we will not accelerate until actuation
-  const float actuation_position = current_position + (current_speed * actuation_latency); // no acceleration
-
-  // predicted position at which car will come to rest
-  const float time_to_stop = actuation_speed / MAX_DECEL; 
-  const float stop_position = actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
-
-  // what's wrong: we are a frame behind. we should predict another frame between
-  // current and actuation (i.e. if we accelerate this frame, will we be too far
-  // in the next frame?) 
-  // This may be where measured control -> control latency is relevant.
-
+void Navigation::_update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed) {
   float output_accel = 0.f;
   float output_speed = 0.f;
   if (stop_position > _target_position) {
@@ -168,8 +137,33 @@ void Navigation::Run() {
   }
 
   // integrate desired acceleration
-  _toc_speed = min(MAX_SPEED, max(0.f, output_speed + output_accel * timestep_duration));
+  _toc_speed = min(MAX_SPEED, max(0.f, output_speed + output_accel * TIMESTEP));
   _last_accel = output_accel;
+}
+
+void Navigation::Run() {
+  _time_integrate();
+
+  Vector2f direction(1, 0); // 1 for forward, -1 for backwards
+
+  // past state at sensor read
+  const float sensor_speed = _velocity.norm();
+  const float sensor_position = _distance;
+  
+  // predicted current state accounting for sense -> run latency 
+  const float current_speed = sensor_speed + (_last_accel * LATENCY);
+  const float current_position = sensor_position + (sensor_speed * LATENCY) + 0.5 * (_last_accel * pow(LATENCY, 2));
+
+  // predicted future state at actuation of output from this control frame
+  const float actuation_speed = current_speed; // assumes we have already reached previous output velocity;
+                                               // we will not accelerate until actuation
+  const float actuation_position = current_position + (current_speed * ACTUATION_LATENCY); // no acceleration
+
+  const float time_to_stop = actuation_speed / MAX_DECEL; 
+  // predicted position at which car will come to rest
+  const float stop_position = actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
+
+  _update_vel_and_accel(stop_position, actuation_position, actuation_speed);
 
   // Normalize the direction so we don't get a velocity greater than max
   direction = direction / direction.norm();
@@ -178,17 +172,15 @@ void Navigation::Run() {
   msg.velocity = _toc_speed * direction[0];
   msg.curvature = _target_curvature;
 
-  // msg.curvature = 1.f; // 1m radius of turning
-
-  std::cout << "_velocity=" << _velocity << std::endl; 
-  std::cout << "sensor_speed=" << sensor_speed << std::endl; 
-  std::cout << "sensor_position=" << sensor_position << std::endl; 
-  std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
-  std::cout << "_target_position=" << _target_position << std::endl; 
-  std::cout << "stop_position=" << stop_position << std::endl; 
-  std::cout << "_last_accel=" << _last_accel << std::endl; 
-  std::cout << "Sending velocity: " << msg.velocity << std::endl;
-  std::cout << std::endl;
+  // std::cout << "_velocity=" << _velocity << std::endl; 
+  // std::cout << "sensor_speed=" << sensor_speed << std::endl; 
+  // std::cout << "sensor_position=" << sensor_position << std::endl; 
+  // std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
+  // std::cout << "_target_position=" << _target_position << std::endl; 
+  // std::cout << "stop_position=" << stop_position << std::endl; 
+  // std::cout << "_last_accel=" << _last_accel << std::endl; 
+  // std::cout << "Sending velocity: " << msg.velocity << std::endl;
+  // std::cout << std::endl;
 
   drive_pub_.publish(msg);
 }
