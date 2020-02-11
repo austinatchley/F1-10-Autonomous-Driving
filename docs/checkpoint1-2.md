@@ -30,9 +30,9 @@ Logan - Fine-tuning for latency compensation implementation and other parameters
 [https://github.com/austinatchley/F1-10-Autonomous-Driving](https://github.com/austinatchley/F1-10-Autonomous-Driving)
 
 ## 7. Video Demos
-[https://drive.google.com/file/d/1-6I8ubXC_vUiwEjwKUGETv0ijHdRV1WZ/view?usp=sharing](2 meters distance on pre-measured tape with default velocity/acceleration)
-[https://drive.google.com/file/d/17qz0Eb2-Sf8woBZr_DeGcpqaZx4tWImE/view?usp=sharing](2 meters distance with curvature of -1)
-[https://drive.google.com/file/d/1vfNl40W3i84cjVTiD2gXZRp0lGstgpvQ/view?usp=sharing](0.5 meters)
+[2 meters distance on pre-measured tape with default velocity/acceleration](https://drive.google.com/file/d/1-6I8ubXC_vUiwEjwKUGETv0ijHdRV1WZ/view?usp=sharing)
+[2 meters distance with curvature of -1](https://drive.google.com/file/d/17qz0Eb2-Sf8woBZr_DeGcpqaZx4tWImE/view?usp=sharing)
+[0.5 meters](https://drive.google.com/file/d/1vfNl40W3i84cjVTiD2gXZRp0lGstgpvQ/view?usp=sharing)
 
 ## 8. Future improvements:
 Sometimes the car lurches at the end because it hasn't quite reached the desired distance, and it ends up passing over the mark slightly. It is still within the margin of error, but we would like to make stopping as smooth as possible.
