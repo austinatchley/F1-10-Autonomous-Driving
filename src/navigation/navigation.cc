@@ -119,7 +119,8 @@ void Navigation::_time_integrate() {
   _prev_odom_loc = _odom_loc;
 }
 
-void Navigation::_update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed) {
+void Navigation::_update_vel_and_accel(float stop_position, float actuation_position,
+                                       float actuation_speed) {
   float output_accel = 0.f;
   float output_speed = 0.f;
   if (stop_position > _target_position) {
@@ -149,19 +150,22 @@ void Navigation::Run() {
   // past state at sensor read
   const float sensor_speed = _velocity.norm();
   const float sensor_position = _distance;
-  
-  // predicted current state accounting for sense -> run latency 
+
+  // predicted current state accounting for sense -> run latency
   const float current_speed = sensor_speed + (_last_accel * LATENCY);
-  const float current_position = sensor_position + (sensor_speed * LATENCY) + 0.5 * (_last_accel * pow(LATENCY, 2));
+  const float current_position =
+      sensor_position + (sensor_speed * LATENCY) + 0.5 * (_last_accel * pow(LATENCY, 2));
 
   // predicted future state at actuation of output from this control frame
-  const float actuation_speed = current_speed; // assumes we have already reached previous output velocity;
-                                               // we will not accelerate until actuation
-  const float actuation_position = current_position + (current_speed * ACTUATION_LATENCY); // no acceleration
+  const float actuation_speed = current_speed; // assumes we have already reached previous output
+                                               // velocity; we will not accelerate until actuation
+  const float actuation_position =
+      current_position + (current_speed * ACTUATION_LATENCY); // no acceleration
 
-  const float time_to_stop = actuation_speed / MAX_DECEL; 
+  const float time_to_stop = actuation_speed / MAX_DECEL;
   // predicted position at which car will come to rest
-  const float stop_position = actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
+  const float stop_position =
+      actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
 
   _update_vel_and_accel(stop_position, actuation_position, actuation_speed);
 
@@ -172,13 +176,13 @@ void Navigation::Run() {
   msg.velocity = _toc_speed * direction[0];
   msg.curvature = _target_curvature;
 
-  // std::cout << "_velocity=" << _velocity << std::endl; 
-  // std::cout << "sensor_speed=" << sensor_speed << std::endl; 
-  // std::cout << "sensor_position=" << sensor_position << std::endl; 
+  // std::cout << "_velocity=" << _velocity << std::endl;
+  // std::cout << "sensor_speed=" << sensor_speed << std::endl;
+  // std::cout << "sensor_position=" << sensor_position << std::endl;
   // std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
-  // std::cout << "_target_position=" << _target_position << std::endl; 
-  // std::cout << "stop_position=" << stop_position << std::endl; 
-  // std::cout << "_last_accel=" << _last_accel << std::endl; 
+  // std::cout << "_target_position=" << _target_position << std::endl;
+  // std::cout << "stop_position=" << stop_position << std::endl;
+  // std::cout << "_last_accel=" << _last_accel << std::endl;
   // std::cout << "Sending velocity: " << msg.velocity << std::endl;
   // std::cout << std::endl;
 
