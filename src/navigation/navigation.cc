@@ -36,8 +36,8 @@
 
 using Eigen::Rotation2D;
 using Eigen::Vector2f;
-using f1tenth_course::VisualizationMsg;
 using f1tenth_course::AckermannCurvatureDriveMsg;
+using f1tenth_course::VisualizationMsg;
 using std::max;
 using std::min;
 using std::string;
@@ -60,10 +60,10 @@ namespace navigation {
 
 Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n,
                        float target_position, float target_curvature)
-    : _n(n), _odom_topic(odom_topic),
-      _target_position(target_position), _target_curvature(target_curvature), _world_loc(0, 0),
-      _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0),
-      _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
+    : _n(n), _odom_topic(odom_topic), _target_position(target_position),
+      _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
+      _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
+      _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
