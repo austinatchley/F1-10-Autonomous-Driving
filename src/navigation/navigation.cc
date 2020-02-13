@@ -101,11 +101,17 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
   _odom_omega = ang_vel;
 }
 
-void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {}
+void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {
+  /*visualization::ClearVisualizationMsg(local_viz_msg_);
+  for (auto point : cloud) {
+    // std::cout << point[0] << "\t" << point[1] << std::endl;
+    visualization::DrawCross(point, 1.f, 0x00FF00, local_viz_msg_);
+  }
+  viz_pub_.publish(local_viz_msg_);
+  */
+}
 
 void Navigation::_time_integrate() {
-  const float TIMESTEP = 1.0 / 20.0;
-
   // TODO: better integrator
   // const float d_theta = _odom_angle - _prev_odom_angle;
   // const Vector2f rel_d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);

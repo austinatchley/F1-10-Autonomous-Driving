@@ -82,14 +82,20 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
 
   static vector<Vector2f> point_cloud_;
   
-  for (uint8_t i = 0; i < msg.ranges.size(); ++i) {
-    float range = msg.ranges[i];
+  const float range_max = msg.range_max;
+  const float range_min = msg.range_min;
+  for (uint32_t i = 0; i < msg.ranges.size(); ++i) {
+    const float range = msg.ranges[i];
+
+    if (range > range_max || range < range_min) {
+        continue;
+    }
 
     const float theta = msg.angle_min + (msg.angle_increment * i);
-    float x = range * cos(theta);
-    float y = range * sin(theta);
+    const float x = range * cos(theta);
+    const float y = range * sin(theta);
     
-    point_cloud_.emplace_back(x, y);
+    point_cloud_.push_back({x, y});
   }
 
   navigation_->ObservePointCloud(point_cloud_, msg.header.stamp.toSec());
