@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 
   navigation_->ResetOdomFrame();
 
-  RateLoop loop(20.0);
+  RateLoop loop(navigation::RATE);
   while (run_ && ros::ok()) {
     ros::spinOnce();
     navigation_->Run();

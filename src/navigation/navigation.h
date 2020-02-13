@@ -31,6 +31,8 @@ class NodeHandle;
 } // namespace ros
 
 namespace navigation {
+static constexpr float RATE = 20.f;
+static constexpr float TIMESTEP = 1.f / RATE;
 
 struct PathOption {
   float curvature;
@@ -46,7 +48,6 @@ public:
   static constexpr float MAX_SPEED = 1.f;
   static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
-  static constexpr float TIMESTEP = 1.f / 20.f;
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
