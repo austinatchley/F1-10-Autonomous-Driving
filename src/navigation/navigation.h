@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "eigen3/Eigen/Dense"
+#include "f1tenth_course/AckermannCurvatureDriveMsg.h"
 
 #ifndef NAVIGATION_H
 #define NAVIGATION_H
@@ -77,6 +78,8 @@ private:
 
   void _time_integrate();
   void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed);
+
+  f1tenth_course::AckermannCurvatureDriveMsg _perform_toc(float distance, float curvature);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
