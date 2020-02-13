@@ -102,13 +102,11 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 }
 
 void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {
-  /*visualization::ClearVisualizationMsg(local_viz_msg_);
+  visualization::ClearVisualizationMsg(local_viz_msg_);
   for (auto point : cloud) {
-    // std::cout << point[0] << "\t" << point[1] << std::endl;
     visualization::DrawCross(point, 1.f, 0x00FF00, local_viz_msg_);
   }
   viz_pub_.publish(local_viz_msg_);
-  */
 }
 
 void Navigation::_time_integrate() {
