@@ -22,7 +22,6 @@
 #include "navigation.h"
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Geometry"
-#include "f1tenth_course/AckermannCurvatureDriveMsg.h"
 #include "f1tenth_course/Pose2Df.h"
 #include "f1tenth_course/VisualizationMsg.h"
 #include "gflags/gflags.h"
@@ -37,8 +36,8 @@
 
 using Eigen::Rotation2D;
 using Eigen::Vector2f;
-using f1tenth_course::AckermannCurvatureDriveMsg;
 using f1tenth_course::VisualizationMsg;
+using f1tenth_course::AckermannCurvatureDriveMsg;
 using std::max;
 using std::min;
 using std::string;
@@ -142,10 +141,8 @@ void Navigation::_update_vel_and_accel(float stop_position, float actuation_posi
   _last_accel = output_accel;
 }
 
-void Navigation::Run() {
-  _time_integrate();
-
-  Vector2f direction(1, 0); // 1 for forward, -1 for backwards
+AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvature) {
+  // Vector2f direction(1, 0);
 
   // past state at sensor read
   const float sensor_speed = _velocity.norm();
@@ -170,11 +167,11 @@ void Navigation::Run() {
   _update_vel_and_accel(stop_position, actuation_position, actuation_speed);
 
   // Normalize the direction so we don't get a velocity greater than max
-  direction = direction / direction.norm();
+  // direction = direction / direction.norm();
 
   AckermannCurvatureDriveMsg msg;
-  msg.velocity = _toc_speed * direction[0];
-  msg.curvature = _target_curvature;
+  msg.velocity = _toc_speed; //* direction;
+  msg.curvature = curvature;
 
   // std::cout << "_velocity=" << _velocity << std::endl;
   // std::cout << "sensor_speed=" << sensor_speed << std::endl;
@@ -185,6 +182,16 @@ void Navigation::Run() {
   // std::cout << "_last_accel=" << _last_accel << std::endl;
   // std::cout << "Sending velocity: " << msg.velocity << std::endl;
   // std::cout << std::endl;
+
+  return msg;
+}
+
+void Navigation::Run() {
+  _time_integrate();
+
+  float distance = 1.f;
+  float curvature = 0.f;
+  auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);
 }
