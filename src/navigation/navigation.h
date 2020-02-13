@@ -86,8 +86,6 @@ private:
   ros::NodeHandle& _n;
   const std::string& _odom_topic;
 
-  float _startTime;
-  float _timeOfLastNav;
   float _target_position;
   float _target_curvature;
 
@@ -95,7 +93,6 @@ private:
   float _toc_speed = 0.f;
 
   float _distance = 0.f;                                 // distance travelled in odom frame
-  Eigen::Vector2f _position = Eigen::Vector2f(0.f, 0.f); // position in odom frame
   Eigen::Vector2f _velocity = Eigen::Vector2f(0.f, 0.f); // velocity in odom frame
 
   float _last_accel = 0.f;

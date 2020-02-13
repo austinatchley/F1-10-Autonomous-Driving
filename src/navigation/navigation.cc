@@ -60,7 +60,7 @@ namespace navigation {
 
 Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n,
                        float target_position, float target_curvature)
-    : _n(n), _odom_topic(odom_topic), _startTime(_now()), _timeOfLastNav(0.f),
+    : _n(n), _odom_topic(odom_topic),
       _target_position(target_position), _target_curvature(target_curvature), _world_loc(0, 0),
       _world_angle(0), _world_vel(0, 0), _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0),
       _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0) {
@@ -73,7 +73,6 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   std::cout << "set nav goal" << std::endl;
-  _timeOfLastNav = _now();
 
   _nav_complete = false;
 
