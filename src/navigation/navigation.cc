@@ -226,9 +226,11 @@ float Navigation::_get_free_path_length(float curvature) {
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
         float cur_dist = _distance_to_point(point, curvature, r_turn);
-        distance = min(cur_dist, distance);
+        if (cur_dist < distance - _distance) {
+            distance = min(cur_dist, distance);
+            visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
+        }
 
-        visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
 
         std::cout << cur_dist << std::endl;
       }
