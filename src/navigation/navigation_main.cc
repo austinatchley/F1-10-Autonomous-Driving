@@ -99,7 +99,7 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
     const float x = range * cos(theta);
     const float y = range * sin(theta);
     
-    point_cloud_.push_back({x, y});
+    point_cloud_.push_back({x + navigation::LASER_OFFSET, y});
   }
 
   navigation_->ObservePointCloud(msg.header.stamp.toSec());

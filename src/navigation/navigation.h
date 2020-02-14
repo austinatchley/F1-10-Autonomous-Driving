@@ -35,13 +35,9 @@ namespace navigation {
 static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
-<<<<<<< HEAD
 static constexpr float CAR_W = .281 + 0.1; // Half the width of the car plus safety margin
 static constexpr float CAR_L = .34 + 0.1;   // Length of car plus safety margin
-=======
-static constexpr float CAR_W = .281 + 0.1; // Half the width of the car
-static constexpr float CAR_L = .43 + 0.1;   // Length of car
->>>>>>> Horiz margin
+static constexpr float LASER_OFFSET = .2; // Distance between laser and base_link
 
 struct PathOption {
   float curvature;
