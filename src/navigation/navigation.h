@@ -92,6 +92,7 @@ private:
   f1tenth_course::AckermannCurvatureDriveMsg _perform_toc(float distance, float curvature);
 
   bool _is_in_path(const Eigen::Vector2f& point, float curvature, float remaining_distance, float r1, float r2);
+  bool _is_in_straight_path(const Eigen::Vector2f& point, float remaining_distance);
 
   float _distance_to_point(const Eigen::Vector2f& p, float curvature, float r_turn);
 

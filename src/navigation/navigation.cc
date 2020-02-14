@@ -190,8 +190,13 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
   return msg;
 }
 
+bool Navigation::_is_in_straight_path(const Vector2f& p, float remaining_distance) {
+  // std::cout << p[0] << ", " << p[1] << std::endl;
+  return abs(p[1]) < CAR_W && p[0] > 0.f && p[0] < remaining_distance;
+} 
+
 bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining_distance, float r1, float r2) {
-  if (abs(curvature) < kEpsilon) { curvature = kEpsilon; }
+  if (abs(curvature) < kEpsilon) { return _is_in_straight_path(p, remaining_distance); }
 
   Vector2f c(0, 1 / curvature);
 
@@ -203,26 +208,29 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 }
 
 float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
+  if (abs(curvature) < kEpsilon) { return p[0]; }
+
   const float x = p[0], y = p[1];
+
   float theta = std::atan2(x, r_turn - y);
   float omega = std::atan2(CAR_L, r_turn - CAR_W);
   float phi = theta - omega;
+
   return r_turn * phi;
 }
 
 float Navigation::_get_free_path_length(float curvature) {
-  if (abs(curvature) < kEpsilon) { curvature = kEpsilon; }
-
   float distance = _target_position;
 
   float r_turn = 1.f / curvature;
-  float r1 = abs(CAR_W - r_turn);
+  float r1 = abs(r_turn) - CAR_W;
   // float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
-  float r2 = sqrt(pow(r_turn + CAR_W, 2) + pow(CAR_L, 2));
+  float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
           distance = min(_distance_to_point(point, curvature, r_turn), distance);
+          std::cout << distance << std::endl;
       }
   }
 
@@ -240,8 +248,6 @@ void Navigation::Run() {
   auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);
-
-  std::cout <<  _distance_to_point(Vector2f(1.f, 1.f), 1.f, 1.f)  << std::endl;
 }
 
 float Navigation::_now() {
