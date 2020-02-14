@@ -100,14 +100,10 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 }
 
 void Navigation::ObservePointCloud(double time) {
-  visualization::ClearVisualizationMsg(local_viz_msg_);
-
   for (auto point : point_cloud) {
     // std::cout << point[0] << ", " << point[1] << std::endl;
     visualization::DrawCross(point, 0.1f, 0xd67d00, local_viz_msg_);
   }
-
-  viz_pub_.publish(local_viz_msg_);
 }
 
 void Navigation::_time_integrate() {
@@ -232,6 +228,8 @@ float Navigation::_get_free_path_length(float curvature) {
         float cur_dist = _distance_to_point(point, curvature, r_turn);
         distance = min(cur_dist, distance);
 
+        visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
+
         std::cout << cur_dist << std::endl;
       }
   }
@@ -250,6 +248,9 @@ void Navigation::Run() {
   auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);
+  viz_pub_.publish(local_viz_msg_);
+
+  visualization::ClearVisualizationMsg(local_viz_msg_);
 }
 
 float Navigation::_now() {
