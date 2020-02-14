@@ -225,12 +225,16 @@ float Navigation::_get_free_path_length(float curvature) {
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, length, r1, r2)) {
         const float point_dist = _distance_to_point(point, curvature, r_turn);
+        visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         if (point_dist < length) {
             length = point_dist;
-            visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         }
       }
   }
+
+  visualization::DrawArc(Vector2f(0,0), r_turn, 0, length / r_turn, 0xff0000, local_viz_msg_);
+  visualization::DrawArc(Vector2f(0,0), r1, 0, length / r1, 0xff0000, local_viz_msg_);
+  visualization::DrawArc(Vector2f(0,0), r2, 0, length / r2, 0xff0000, local_viz_msg_);
 
   return length;
 }
