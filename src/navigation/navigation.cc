@@ -216,7 +216,7 @@ float Navigation::_get_free_path_length(float curvature) {
   float distance = _target_position;
 
   float r_turn = 1.f / curvature;
-  float r1 = CAR_W - r_turn;
+  float r1 = abs(CAR_W - r_turn);
   float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
 
   for (const Vector2f& point : point_cloud) {
