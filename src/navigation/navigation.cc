@@ -220,7 +220,6 @@ float Navigation::_get_free_path_length(float curvature) {
 
   float r_turn = 1.f / curvature;
   float r1 = abs(r_turn) - CAR_W;
-  // float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
   float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
@@ -230,8 +229,6 @@ float Navigation::_get_free_path_length(float curvature) {
             distance = min(cur_dist, distance);
             visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         }
-
-        std::cout << cur_dist << std::endl;
       }
   }
 
@@ -243,9 +240,12 @@ void Navigation::Run() {
 
   float curvature = _target_curvature;
   float free_path_length = _get_free_path_length(curvature);
+  std::cout << "Free path length: " << free_path_length << std::endl;
 
-  float distance = min(_target_position, _distance + free_path_length);
-  auto msg = _perform_toc(distance, curvature);
+  float target_position = min(_target_position, _distance + free_path_length);
+  std::cout << "Target position: " << target_position << std::endl;
+
+  auto msg = _perform_toc(target_position, curvature);
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
