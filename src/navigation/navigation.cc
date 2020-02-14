@@ -229,7 +229,10 @@ float Navigation::_get_free_path_length(float curvature) {
 
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
-        distance = min(_distance_to_point(point, curvature, r_turn), distance);
+        float cur_dist = _distance_to_point(point, curvature, r_turn);
+        distance = min(cur_dist, distance);
+
+        std::cout << cur_dist << std::endl;
       }
   }
 
