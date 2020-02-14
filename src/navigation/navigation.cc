@@ -208,7 +208,7 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 }
 
 float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
-  if (abs(curvature) < kEpsilon) { return p[0]; }
+  if (abs(curvature) < kEpsilon) { return p[0] - CAR_L; }
 
   const float x = p[0], y = p[1];
 
@@ -229,8 +229,7 @@ float Navigation::_get_free_path_length(float curvature) {
 
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
-          distance = min(_distance_to_point(point, curvature, r_turn), distance);
-          std::cout << distance << std::endl;
+        distance = min(_distance_to_point(point, curvature, r_turn), distance);
       }
   }
 
