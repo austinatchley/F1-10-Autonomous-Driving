@@ -101,9 +101,9 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
   _odom_omega = ang_vel;
 }
 
-void Navigation::ObservePointCloud(const vector<Vector2f>& cloud, double time) {
+void Navigation::ObservePointCloud(double time) {
   visualization::ClearVisualizationMsg(local_viz_msg_);
-  for (auto point : cloud) {
+  for (auto point : point_cloud) {
     visualization::DrawCross(point, 1.f, 0x00FF00, local_viz_msg_);
   }
   viz_pub_.publish(local_viz_msg_);
@@ -122,12 +122,12 @@ void Navigation::_time_integrate() {
 }
 
 void Navigation::_update_vel_and_accel(float stop_position, float actuation_position,
-                                       float actuation_speed) {
+                                       float actuation_speed, float target_position) {
   float output_accel = 0.f;
   float output_speed = 0.f;
-  if (stop_position > _target_position) {
+  if (stop_position > target_position) {
     // decelerate
-    const float remaining_distance = _target_position - actuation_position;
+    const float remaining_distance = target_position - actuation_position;
     if (remaining_distance > 0) {
       output_accel = -pow(actuation_speed, 2) / (2 * remaining_distance);
       output_speed = actuation_speed;
@@ -167,7 +167,7 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
   const float stop_position =
       actuation_position + (actuation_speed * time_to_stop) + (MAX_DECEL * pow(time_to_stop, 2));
 
-  _update_vel_and_accel(stop_position, actuation_position, actuation_speed);
+  _update_vel_and_accel(stop_position, actuation_position, actuation_speed, distance);
 
   // Normalize the direction so we don't get a velocity greater than max
   // direction = direction / direction.norm();
@@ -189,16 +189,53 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
   return msg;
 }
 
+bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining_distance, float r1, float r2) {
+  if (abs(curvature) < kEpsilon) { curvature = kEpsilon; }
+
+  Vector2f c(0, 1 / curvature);
+
+  float r = (p - c).norm();
+
+  float theta = atan2(p[1] - r, p[0]);
+
+  return r >= r1 && r <= r2 && theta > 0;
+}
+
+float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
+  const float x = p[0], y = p[1];
+  float theta = atan2(x, r_turn - y);
+  float omega = atan2(CAR_L, r_turn - CAR_W);
+  float phi = theta - omega;
+
+  return r_turn * phi;
+}
+
 float Navigation::_get_free_path_length(float curvature) {
-  return _target_position;
+  if (abs(curvature) < kEpsilon) { curvature = kEpsilon; }
+
+  float distance = _target_position;
+
+  float r_turn = 1.f / curvature;
+  float r1 = CAR_W - r_turn;
+  float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
+
+  for (const Vector2f& point : point_cloud) {
+      if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
+          distance = min(_distance_to_point(point, curvature, r_turn), distance);
+      }
+  }
+
+  return distance;
 }
 
 void Navigation::Run() {
   _time_integrate();
 
-  float free_path_length = _get_free_path_length(curvature);
-  float distance = min(_target_position, free_path_length);
   float curvature = _target_curvature;
+  float free_path_length = _get_free_path_length(curvature);
+  std::cout << "Free path length: " << free_path_length << std::endl;
+
+  float distance = min(_target_position, free_path_length);
   auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);

@@ -80,10 +80,12 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
   // Location of the laser on the robot. Assumes the laser is forward-facing.
   const Vector2f kLaserLoc(0.2, 0);
 
-  static vector<Vector2f> point_cloud_;
+  vector<Vector2f>& point_cloud_ = navigation_->point_cloud;
   
   const float range_max = msg.range_max;
   const float range_min = msg.range_min;
+
+  point_cloud_.clear();
   for (uint32_t i = 0; i < msg.ranges.size(); ++i) {
     const float range = msg.ranges[i];
 
@@ -98,7 +100,7 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
     point_cloud_.push_back({x, y});
   }
 
-  navigation_->ObservePointCloud(point_cloud_, msg.header.stamp.toSec());
+  navigation_->ObservePointCloud(msg.header.stamp.toSec());
   last_laser_msg_ = msg;
 }
 

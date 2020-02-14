@@ -35,6 +35,9 @@ namespace navigation {
 static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
+static constexpr float CAR_W = .281; // Half the width of the car
+static constexpr float CAR_L = .4;   // Length of car
+
 struct PathOption {
   float curvature;
   float clearance;
@@ -64,7 +67,7 @@ public:
                       float ang_vel);
 
   // Updates based on an observed laser scan
-  void ObservePointCloud(const std::vector<Eigen::Vector2f>& cloud, double time);
+  void ObservePointCloud(double time);
 
   // Main function called continously from main
   void Run();
@@ -73,13 +76,20 @@ public:
 
   void ResetOdomFrame();
 
+  // the point cloud. updated on each ObservePointCloud call
+  std::vector<Eigen::Vector2f> point_cloud;
+
 private:
   float _now();
 
   void _time_integrate();
-  void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed);
+  void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed, float target_position);
 
   f1tenth_course::AckermannCurvatureDriveMsg _perform_toc(float distance, float curvature);
+
+  bool _is_in_path(const Eigen::Vector2f& point, float curvature, float remaining_distance, float r1, float r2);
+
+  float _distance_to_point(const Eigen::Vector2f& p, float curvature, float r_turn);
 
   float _get_free_path_length(float curvature);
 
