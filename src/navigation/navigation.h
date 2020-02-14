@@ -35,8 +35,8 @@ namespace navigation {
 static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
-static constexpr float CAR_W = .281; // Half the width of the car
-static constexpr float CAR_L = .4;   // Length of car
+static constexpr float CAR_W = .281 + 0.1; // Half the width of the car plus safety margin
+static constexpr float CAR_L = .34 + 0.1;   // Length of car plus safety margin
 
 struct PathOption {
   float curvature;
