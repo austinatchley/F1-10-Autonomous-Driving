@@ -197,18 +197,17 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 
   float r = (p - c).norm();
 
-  float theta = atan2(p[1] - r, p[0]);
+  float theta = std::atan2(p[0], p[1] - r);
 
   return r >= r1 && r <= r2 && theta > 0;
 }
 
 float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
-  // const float x = p[0], y = p[1];
-  // float theta = atan2(r_turn - y, x);
-  // float omega = atan2(r_turn - CAR_W, CAR_L);
-  // float phi = theta - omega;
-  // return r_turn * phi;
-  return p.norm();
+  const float x = p[0], y = p[1];
+  float theta = std::atan2(x, r_turn - y);
+  float omega = std::atan2(CAR_L, r_turn - CAR_W);
+  float phi = theta - omega;
+  return r_turn * phi;
 }
 
 float Navigation::_get_free_path_length(float curvature) {
@@ -218,7 +217,8 @@ float Navigation::_get_free_path_length(float curvature) {
 
   float r_turn = 1.f / curvature;
   float r1 = abs(CAR_W - r_turn);
-  float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
+  // float r2 = (Vector2f(CAR_L, -CAR_W) - Vector2f(0, r_turn)).norm();
+  float r2 = sqrt(pow(r_turn + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
