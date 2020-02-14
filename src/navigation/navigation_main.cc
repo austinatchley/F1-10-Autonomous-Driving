@@ -72,6 +72,8 @@ bool run_ = true;
 sensor_msgs::LaserScan last_laser_msg_;
 Navigation* navigation_ = nullptr;
 
+const float kEpsilon = 1e-5;
+
 void LaserCallback(const sensor_msgs::LaserScan& msg) {
   if (FLAGS_v > 0) {
     printf("Laser t=%f, dt=%f\n", msg.header.stamp.toSec(),
@@ -89,7 +91,7 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
   for (uint32_t i = 0; i < msg.ranges.size(); ++i) {
     const float range = msg.ranges[i];
 
-    if (range > range_max || range < range_min) {
+    if (range > range_max + kEpsilon || range < range_min) {
         continue;
     }
 

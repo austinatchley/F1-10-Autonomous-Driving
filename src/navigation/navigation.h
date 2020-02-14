@@ -55,6 +55,10 @@ public:
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
+  // Epsilon value for handling limited numerical precision.
+  static constexpr float kEpsilon = 1e-5;
+
+
   // Constructor
   explicit Navigation(const std::string& map_file, const std::string& odom_topic,
                       ros::NodeHandle& n, float target_position, float target_curvature);

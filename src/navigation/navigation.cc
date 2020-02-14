@@ -52,12 +52,9 @@ ros::Publisher viz_pub_;
 VisualizationMsg local_viz_msg_;
 VisualizationMsg global_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
-// Epsilon value for handling limited numerical precision.
-const float kEpsilon = 1e-5;
 } // namespace
 
 namespace navigation {
-
 Navigation::Navigation(const string& map_file, const string& odom_topic, ros::NodeHandle& n,
                        float target_position, float target_curvature)
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
@@ -66,6 +63,7 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
       _nav_goal_loc(0, 0), _nav_goal_angle(0) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
+
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   InitRosHeader("base_link", &drive_msg_.header);
@@ -103,9 +101,12 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 
 void Navigation::ObservePointCloud(double time) {
   visualization::ClearVisualizationMsg(local_viz_msg_);
+
   for (auto point : point_cloud) {
-    visualization::DrawCross(point, 1.f, 0x00FF00, local_viz_msg_);
+    // std::cout << point[0] << ", " << point[1] << std::endl;
+    visualization::DrawCross(point, 0.1f, 0xd67d00, local_viz_msg_);
   }
+
   viz_pub_.publish(local_viz_msg_);
 }
 
@@ -233,7 +234,7 @@ void Navigation::Run() {
 
   float curvature = _target_curvature;
   float free_path_length = _get_free_path_length(curvature);
-  std::cout << "Free path length: " << free_path_length << std::endl;
+  // std::cout << "Free path length: " << free_path_length << std::endl;
 
   float distance = min(_target_position, free_path_length);
   auto msg = _perform_toc(distance, curvature);
