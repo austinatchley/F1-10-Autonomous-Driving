@@ -81,6 +81,8 @@ private:
 
   f1tenth_course::AckermannCurvatureDriveMsg _perform_toc(float distance, float curvature);
 
+  float _get_free_path_length(float curvature);
+
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
   ros::NodeHandle& _n;

@@ -189,10 +189,15 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
   return msg;
 }
 
+float Navigation::_get_free_path_length(float curvature) {
+  return _target_position;
+}
+
 void Navigation::Run() {
   _time_integrate();
 
-  float distance = _target_position;
+  float free_path_length = _get_free_path_length(curvature);
+  float distance = min(_target_position, free_path_length);
   float curvature = _target_curvature;
   auto msg = _perform_toc(distance, curvature);
 
