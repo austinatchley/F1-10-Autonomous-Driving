@@ -231,7 +231,6 @@ float Navigation::_get_free_path_length(float curvature) {
             visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         }
 
-
         std::cout << cur_dist << std::endl;
       }
   }
@@ -244,9 +243,8 @@ void Navigation::Run() {
 
   float curvature = _target_curvature;
   float free_path_length = _get_free_path_length(curvature);
-  // std::cout << "Free path length: " << free_path_length << std::endl;
 
-  float distance = min(_target_position, free_path_length);
+  float distance = min(_target_position, _distance + free_path_length);
   auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);
