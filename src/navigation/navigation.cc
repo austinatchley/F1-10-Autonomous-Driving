@@ -202,12 +202,12 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 }
 
 float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
-  const float x = p[0], y = p[1];
-  float theta = atan2(x, r_turn - y);
-  float omega = atan2(CAR_L, r_turn - CAR_W);
-  float phi = theta - omega;
-
-  return r_turn * phi;
+  // const float x = p[0], y = p[1];
+  // float theta = atan2(r_turn - y, x);
+  // float omega = atan2(r_turn - CAR_W, CAR_L);
+  // float phi = theta - omega;
+  // return r_turn * phi;
+  return p.norm();
 }
 
 float Navigation::_get_free_path_length(float curvature) {
