@@ -240,6 +240,8 @@ void Navigation::Run() {
   auto msg = _perform_toc(distance, curvature);
 
   drive_pub_.publish(msg);
+
+  std::cout <<  _distance_to_point(Vector2f(1.f, 1.f), 1.f, 1.f)  << std::endl;
 }
 
 float Navigation::_now() {
