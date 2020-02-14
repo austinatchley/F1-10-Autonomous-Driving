@@ -198,7 +198,7 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 
   float r = (p - c).norm();
 
-  float theta = std::atan2(p[0], p[1] - r);
+  float theta = std::atan2(p[0], r - p[1]);
 
   return r >= r1 && r <= r2 && theta > 0;
 }
@@ -216,23 +216,23 @@ float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r
 }
 
 float Navigation::_get_free_path_length(float curvature) {
-  float distance = _target_position;
+  float length = std::numeric_limits<float>::max();
 
-  float r_turn = 1.f / curvature;
-  float r1 = abs(r_turn) - CAR_W;
-  float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
+  const float r_turn = 1.f / curvature;
+  const float r1 = abs(r_turn) - CAR_W;
+  const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
-      if (_is_in_path(point, curvature, distance - _distance, r1, r2)) {
-        float cur_dist = _distance_to_point(point, curvature, r_turn);
-        if (cur_dist < distance - _distance) {
-            distance = min(cur_dist, distance);
+      if (_is_in_path(point, curvature, length, r1, r2)) {
+        const float point_dist = _distance_to_point(point, curvature, r_turn);
+        if (point_dist < length) {
+            length = point_dist;
             visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         }
       }
   }
 
-  return distance;
+  return length;
 }
 
 void Navigation::Run() {
