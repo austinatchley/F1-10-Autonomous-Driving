@@ -232,9 +232,9 @@ float Navigation::_get_free_path_length(float curvature) {
       }
   }
 
-  visualization::DrawArc(Vector2f(0,0), r_turn, 0, length / r_turn, 0xff0000, local_viz_msg_);
-  visualization::DrawArc(Vector2f(0,0), r1, 0, length / r1, 0xff0000, local_viz_msg_);
-  visualization::DrawArc(Vector2f(0,0), r2, 0, length / r2, 0xff0000, local_viz_msg_);
+  if (length > 0) {
+    visualization::DrawPathOption(curvature, length, 0, local_viz_msg_);
+  }
 
   return length;
 }
@@ -250,6 +250,11 @@ void Navigation::Run() {
   std::cout << "Target position: " << target_position << std::endl;
 
   auto msg = _perform_toc(target_position, curvature);
+
+  visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(0, CAR_W), 0xff0000, local_viz_msg_);
+  visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(CAR_L, -CAR_W), 0xff0000, local_viz_msg_);
+  visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
+  visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
