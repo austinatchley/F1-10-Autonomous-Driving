@@ -32,12 +32,18 @@ We have a function called `_is_in_path` that returns a boolean value. It perform
 Also, if the curvature is close to 0, our code executes a bit differently. ...
 
 ## 3. Parameter tuning:
-Length of car
-
-Width of car
+We estimated and measured physical dimensions on the car. Otherwise, the parameters we selected in previous checkpoints held up well in our testing.
 
 ## 4. Challenges faced:
 Visualization
+
+* We had trouble debugging our obstacle detection code because we could not make visualizations work. Once we were able to display our point cloud, we were able to pinpoint the issue specifically to the obstacle determination code.
+
+* We programmed our obstacle-in-path check incorrectly at first. We debugged this by visualizing all points considered to be within the path of the robot. After fixing a mathematical error, we could visually confirm that the obstacle checking worked correctly.
+
+* We defined the size of our robot incorrectly. We noticed this by visualizing the bounding box of the robot.
+
+* We forgot to transform from the LIDAR frame to the base link frame. We debugged this by noticing that the robot stopped short of obstacles.
 
 ## 5. Contributions of each team member:
 
@@ -62,3 +68,5 @@ All object detection code was pair-programmed with Austin committing, but both o
 [https://drive.google.com/open?id=1LvRrm8nX1ExARm2PeNV4seEy5ZIirfrO](https://drive.google.com/open?id=1LvRrm8nX1ExARm2PeNV4seEy5ZIirfrO)
 
 ## 8. Future improvements:
+
+* We would like to reduce twitching when the car stops.
