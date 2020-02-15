@@ -52,7 +52,13 @@ All object detection code was pair-programmed with Austin committing, but both o
 
 ## 7. Video Demos
 
-### 2 meters distance on pre-measured tape with 1m/s max velocity and 3m/s^2 max acceleration
-[https://drive.google.com/file/d/1-6I8ubXC_vUiwEjwKUGETv0ijHdRV1WZ/view?usp=sharing](https://drive.google.com/file/d/1-6I8ubXC_vUiwEjwKUGETv0ijHdRV1WZ/view?usp=sharing)
+### Low positive curvature value
+[https://drive.google.com/open?id=1pZqY6qFQXsJXYHtotJn4z4DaEXDspow8](https://drive.google.com/open?id=1pZqY6qFQXsJXYHtotJn4z4DaEXDspow8)
+
+### High negative curvature value
+[https://drive.google.com/open?id=1sn9RkY4Kmy1uIlK_Elz_0V7_eoUz6u3L](https://drive.google.com/open?id=1sn9RkY4Kmy1uIlK_Elz_0V7_eoUz6u3L)
+
+### Low positive curvature value with moving obstacles
+[https://drive.google.com/open?id=1LvRrm8nX1ExARm2PeNV4seEy5ZIirfrO](https://drive.google.com/open?id=1LvRrm8nX1ExARm2PeNV4seEy5ZIirfrO)
 
 ## 8. Future improvements:
