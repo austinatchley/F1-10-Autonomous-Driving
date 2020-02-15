@@ -7,29 +7,30 @@ Austin Atchley
 ## 1. Mathematical computation:
 
 ### LIDAR to point cloud computation:
-We used the calculations presented in class:
+We used the calculations presented in class.
 
-for each point:
-
+for each point in point cloud:
     theta_i = theta_0 + i * theta_increment
     p_i = {r_i * cos(theta_i), r_i * sin(theta_i)}
 
-### Obstacle determination computation:
-Get Point Cloud
-Get desired curvature to travel along
-free path length = [some large number, e.g. the range of the sensor]
+### Obstacle detection computation:
+Given command line flags for max distance and curvature
+Assuming we already have the point cloud constructed
+
+Free path length = max distance
 Iterating through all points in point cloud:
-If point is not an obstacle, skip.
-Find minimum of free path length with this point, and the free path length so far
-Use free path length as distance left to traverse
-Run 1-D TOC with this free path length as distance left.
+    If point is not an obstacle, skip.
+    Find minimum of free path length with this point, and the free path length so far
+
+Add free path length to our current position to get target position
+Run 1-D TOC with our current position and this target position
 
 ## 2. Code organization:
-We refactored our 1D TOC to take only distance and curvature as parameters. Broadly, the functionality we added for this checkpoint determines the distance and curvature to feed 1D TOC.
+We refactored our 1D TOC to take only distance and curvature as parameters. It exists entirely as a function that operates on these parameters and the state. Broadly, the functionality we added for this checkpoint determines the distance and curvature necessary to run 1D TOC correctly.
 
-We have a function called `_is_in_path` that returns a boolean value. It performs the calculations outlined in section 1.2. If the point is in our path, we compute the distance along our path to the point with `_get_dist_to_point`.
+We have a function called `_is_in_path` that returns a boolean value. It performs the calculations outlined above in section 1.2. If the point is in our path, we compute the distance along our path to the point with `_get_dist_to_point`. This is the maximum distance we can go. If the object moves, the value for `_get_dist_to_point` is updated accordingly, and the car resumes its previous path.
 
-Also, if the curvature is close to 0, our code executes a bit differently. ...
+Also, if the curvature is close to 0, our code branches into a straight version of `_is_in_path` which performs a different calculation.
 
 ## 3. Parameter tuning:
 We estimated and measured physical dimensions on the car. Otherwise, the parameters we selected in previous checkpoints held up well in our testing.
