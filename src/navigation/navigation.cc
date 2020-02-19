@@ -203,9 +203,10 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
   return r >= r1 && r <= r2 && theta > 0;
 }
 
-float Navigation::_distance_to_point(const Vector2f& p, float curvature, float r_turn) {
+float Navigation::_distance_to_point(const Vector2f& p, float curvature) {
   if (abs(curvature) < kEpsilon) { return p[0] - CAR_L; }
 
+  const float r_turn = 1.f / curvature;
   const float x = p[0], y = p[1];
 
   float theta = std::atan2(x, r_turn - y);
@@ -224,7 +225,7 @@ float Navigation::_get_free_path_length(float curvature) {
 
   for (const Vector2f& point : point_cloud) {
       if (_is_in_path(point, curvature, length, r1, r2)) {
-        const float point_dist = _distance_to_point(point, curvature, r_turn);
+        const float point_dist = _distance_to_point(point, curvature);
         visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
         if (point_dist < length) {
             length = point_dist;
@@ -257,7 +258,7 @@ float Navigation::_get_best_curvature() {
 
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
-    const float free_path_length = _get_free_path_length(curvature);
+    const float free_path_length = min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
     const float clearance = 0;
     const float score = free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
