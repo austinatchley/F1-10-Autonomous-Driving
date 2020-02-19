@@ -102,6 +102,7 @@ private:
 
   float _get_best_curvature();
   float _get_free_path_length(float curvature);
+  float _get_clearance();
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 

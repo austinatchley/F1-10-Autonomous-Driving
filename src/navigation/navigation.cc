@@ -247,6 +247,12 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
   return direction * radius;
 }
 
+float Navigation::_get_clearance() {
+  // const float r1, r2;
+
+  return 0.f;
+}
+
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
@@ -260,7 +266,7 @@ float Navigation::_get_best_curvature() {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
     const float free_path_length = min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    const float clearance = 0;
+    const float clearance = _get_clearance();
     const float score = free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
 
     if (score > max_score) {
