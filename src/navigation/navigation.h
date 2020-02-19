@@ -53,10 +53,14 @@ public:
   static constexpr float MAX_SPEED = 1.f;
   static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
+
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
-  static constexpr float WEIGHT_CLEARANCE = 1.f;
+
+  static constexpr float WEIGHT_CLEARANCE = 100.f;
   static constexpr float WEIGHT_DISTANCE = -1.f;
+
+  static constexpr float MAX_CLEARANCE = 1.f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
@@ -102,7 +106,7 @@ private:
 
   float _get_best_curvature();
   float _get_free_path_length(float curvature);
-  float _get_clearance();
+  float _get_clearance(float curvature, float free_path_length);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 

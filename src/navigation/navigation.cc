@@ -247,10 +247,41 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
   return direction * radius;
 }
 
-float Navigation::_get_clearance() {
-  // const float r1, r2;
+float Navigation::_get_clearance(float curvature, float free_path_length) {
+  float clearance = MAX_CLEARANCE;
+  float theta_max = curvature * free_path_length;
 
-  return 0.f;
+  if (abs(curvature) < kEpsilon) {
+    for (const Vector2f& point : point_cloud) {
+      if (point[0] < free_path_length && point[0] > 0.f) {
+        clearance = min(clearance, max(0.f, abs(point[1]) - (CAR_W / 2.f)));
+      }
+    }
+
+    return clearance;
+  }
+
+  const float r_turn = 1.f / curvature;
+  const Vector2f center(0.f, r_turn);
+  const float r1 = abs(r_turn) - CAR_W;
+  const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
+
+  for (const Vector2f& point : point_cloud) { 
+    float theta = std::atan2(point[0], r_turn - point[1]);
+    if (theta < 0 || theta > theta_max) { continue; }
+
+    float point_radius = (center - point).norm();
+    float cur_clearance = 0.f;
+    if (point_radius < r1) {
+      cur_clearance = r1 - point_radius;
+    } else if (point_radius > r2) {
+      cur_clearance = point_radius - r2;
+    }
+
+    clearance = min(cur_clearance, clearance);
+  }
+
+  return clearance;
 }
 
 float Navigation::_get_best_curvature() {
@@ -266,7 +297,7 @@ float Navigation::_get_best_curvature() {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
     const float free_path_length = min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    const float clearance = _get_clearance();
+    const float clearance = _get_clearance(curvature, free_path_length);
     const float score = free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
 
     if (score > max_score) {
