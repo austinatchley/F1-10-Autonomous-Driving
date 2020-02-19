@@ -249,7 +249,9 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
 
 float Navigation::_get_clearance(float curvature, float free_path_length) {
   float clearance = MAX_CLEARANCE;
-  float theta_max = curvature * free_path_length;
+
+  // TODO: this is really big when free_path_length is really big. Seems wrong
+  float theta_max = curvature * free_path_length; 
 
   if (abs(curvature) < kEpsilon) {
     for (const Vector2f& point : point_cloud) {
@@ -268,6 +270,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
 
   for (const Vector2f& point : point_cloud) { 
     float theta = std::atan2(point[0], r_turn - point[1]);
+    std::cout << theta_max << std::endl;
     if (theta < 0 || theta > theta_max) { continue; }
 
     float point_radius = (center - point).norm();
@@ -317,7 +320,7 @@ void Navigation::Run() {
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
-  visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
+  visualization::DrawPathOption(curvature, free_path_length, _get_clearance(curvature, free_path_length), local_viz_msg_);
   std::cout << "Free path length: " << free_path_length << std::endl;
 
   float target_position = min(_target_position, _distance + free_path_length);
