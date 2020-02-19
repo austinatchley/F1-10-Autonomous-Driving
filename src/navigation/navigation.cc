@@ -232,18 +232,54 @@ float Navigation::_get_free_path_length(float curvature) {
       }
   }
 
-  if (length > 0) {
-    visualization::DrawPathOption(curvature, length, 0, local_viz_msg_);
+  return length;
+}
+
+Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vector2f& carrot) {
+  if (abs(curvature) < kEpsilon) {
+    return Vector2f(carrot.x(), 0);
   }
 
-  return length;
+  const float radius = 1.f / curvature;
+  const Vector2f center(0, radius);
+  const Vector2f direction = (carrot - center).normalized();
+  return direction * radius;
+}
+
+float Navigation::_get_best_curvature() {
+  const float min_curvature = -1;
+  const float max_curvature = 1;
+  const int n = 16;
+  const float step_size = (max_curvature - min_curvature) / n;
+
+  float max_score = 0;
+  float best_curvature = 0;
+
+  for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
+    const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
+    const float free_path_length = _get_free_path_length(curvature);
+    const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
+    const float clearance = 0;
+    const float score = free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
+
+    if (score > max_score) {
+      best_curvature = curvature;
+      max_score = score;
+    }
+    visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
+  }
+
+  return best_curvature;
 }
 
 void Navigation::Run() {
   _time_integrate();
 
-  float curvature = _target_curvature;
+  _nav_goal_loc = Vector2f(1.f, 0.f);
+
+  const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
+  visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
   std::cout << "Free path length: " << free_path_length << std::endl;
 
   float target_position = min(_target_position, _distance + free_path_length);

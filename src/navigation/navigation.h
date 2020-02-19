@@ -55,6 +55,8 @@ public:
   static constexpr float MAX_DECEL = 3.f;
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
+  static constexpr float WEIGHT_CLEARANCE = 1.f;
+  static constexpr float WEIGHT_DISTANCE = -1.f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
@@ -96,7 +98,9 @@ private:
   bool _is_in_straight_path(const Eigen::Vector2f& point, float remaining_distance);
 
   float _distance_to_point(const Eigen::Vector2f& p, float curvature, float r_turn);
+  Eigen::Vector2f _closest_approach(const float curvature, const Eigen::Vector2f& carrot);
 
+  float _get_best_curvature();
   float _get_free_path_length(float curvature);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
