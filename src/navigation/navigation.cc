@@ -174,10 +174,13 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
 bool Navigation::_is_in_straight_path(const Vector2f& p, float remaining_distance) {
   // std::cout << p[0] << ", " << p[1] << std::endl;
   return abs(p[1]) < CAR_W && p[0] > 0.f && p[0] < remaining_distance;
-} 
+}
 
-bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining_distance, float r1, float r2) {
-  if (abs(curvature) < kEpsilon) { return _is_in_straight_path(p, remaining_distance); }
+bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining_distance, float r1,
+                             float r2) {
+  if (abs(curvature) < kEpsilon) {
+    return _is_in_straight_path(p, remaining_distance);
+  }
 
   Vector2f c(0, 1 / curvature);
 
@@ -189,7 +192,9 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 }
 
 float Navigation::_distance_to_point(const Vector2f& p, float curvature) {
-  if (abs(curvature) < kEpsilon) { return p[0] - CAR_L; }
+  if (abs(curvature) < kEpsilon) {
+    return p[0] - CAR_L;
+  }
 
   const float r_turn = 1.f / curvature;
   const float x = p[0], y = p[1];
@@ -209,13 +214,13 @@ float Navigation::_get_free_path_length(float curvature) {
   const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
-      if (_is_in_path(point, curvature, length, r1, r2)) {
-        const float point_dist = _distance_to_point(point, curvature);
-        visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
-        if (point_dist < length) {
-            length = point_dist;
-        }
+    if (_is_in_path(point, curvature, length, r1, r2)) {
+      const float point_dist = _distance_to_point(point, curvature);
+      visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
+      if (point_dist < length) {
+        length = point_dist;
       }
+    }
   }
 
   return length;
@@ -253,10 +258,12 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   const float r1 = abs(r_turn) - CAR_W;
   const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
-  for (const Vector2f& point : point_cloud) { 
+  for (const Vector2f& point : point_cloud) {
     float theta = std::atan2(point[0], r_turn - point[1]);
     // std::cout << theta_max << std::endl;
-    if (theta < 0 || theta > theta_max) { continue; }
+    if (theta < 0 || theta > theta_max) {
+      continue;
+    }
 
     float point_radius = (center - point).norm();
     float cur_clearance = 0.f;
@@ -283,10 +290,12 @@ float Navigation::_get_best_curvature() {
 
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
-    const float free_path_length = min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
+    const float free_path_length =
+        min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
     const float clearance = _get_clearance(curvature, free_path_length);
-    const float score = free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
+    const float score =
+        free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
 
     if (score > max_score) {
       best_curvature = curvature;
@@ -305,7 +314,8 @@ void Navigation::Run() {
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
-  visualization::DrawPathOption(curvature, free_path_length, _get_clearance(curvature, free_path_length), local_viz_msg_);
+  visualization::DrawPathOption(curvature, free_path_length,
+                                _get_clearance(curvature, free_path_length), local_viz_msg_);
   std::cout << "Free path length: " << free_path_length << std::endl;
 
   float target_position = min(_target_position, _distance + free_path_length);
@@ -315,7 +325,8 @@ void Navigation::Run() {
 
   visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(0, CAR_W), 0xff0000, local_viz_msg_);
   visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(CAR_L, -CAR_W), 0xff0000, local_viz_msg_);
-  visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
+  visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000,
+                          local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
   drive_pub_.publish(msg);

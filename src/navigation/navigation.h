@@ -36,8 +36,8 @@ static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
 static constexpr float CAR_W = .281 / 2 + 0.1; // Half the width of the car
-static constexpr float CAR_L = .43 + 0.1;   // Length of car
-static constexpr float LASER_OFFSET = .2; // Distance between laser and base_link
+static constexpr float CAR_L = .43 + 0.1;      // Length of car
+static constexpr float LASER_OFFSET = .2;      // Distance between laser and base_link
 
 struct PathOption {
   float curvature;
@@ -64,7 +64,6 @@ public:
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
-
 
   // Constructor
   explicit Navigation(const std::string& map_file, const std::string& odom_topic,
@@ -94,11 +93,13 @@ private:
   float _now();
 
   void _time_integrate();
-  void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed, float target_position);
+  void _update_vel_and_accel(float stop_position, float actuation_position, float actuation_speed,
+                             float target_position);
 
   f1tenth_course::AckermannCurvatureDriveMsg _perform_toc(float distance, float curvature);
 
-  bool _is_in_path(const Eigen::Vector2f& point, float curvature, float remaining_distance, float r1, float r2);
+  bool _is_in_path(const Eigen::Vector2f& point, float curvature, float remaining_distance,
+                   float r1, float r2);
   bool _is_in_straight_path(const Eigen::Vector2f& point, float remaining_distance);
 
   float _distance_to_point(const Eigen::Vector2f& p, float curvature);

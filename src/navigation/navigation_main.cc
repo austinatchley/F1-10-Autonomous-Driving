@@ -83,7 +83,7 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
   const Vector2f kLaserLoc(0.2, 0);
 
   vector<Vector2f>& point_cloud_ = navigation_->point_cloud;
-  
+
   const float range_max = msg.range_max;
   const float range_min = msg.range_min;
 
@@ -92,13 +92,13 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
     const float range = msg.ranges[i];
 
     if (range > range_max + kEpsilon || range < range_min) {
-        continue;
+      continue;
     }
 
     const float theta = msg.angle_min + (msg.angle_increment * i);
     const float x = range * cos(theta);
     const float y = range * sin(theta);
-    
+
     point_cloud_.push_back({x + navigation::LASER_OFFSET, y});
   }
 
