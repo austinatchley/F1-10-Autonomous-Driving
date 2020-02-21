@@ -102,7 +102,8 @@ private:
                    float r1, float r2);
   bool _is_in_straight_path(const Eigen::Vector2f& point, float remaining_distance);
 
-  float _distance_to_point(const Eigen::Vector2f& p, float curvature);
+  float _arc_distance_safe(const Eigen::Vector2f& p, float curvature);
+  float _arc_distance(const Eigen::Vector2f& p, float curvature);
   Eigen::Vector2f _closest_approach(const float curvature, const Eigen::Vector2f& carrot);
 
   float _get_best_curvature();
