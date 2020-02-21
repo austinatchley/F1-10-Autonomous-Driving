@@ -226,7 +226,7 @@ float Navigation::_get_free_path_length(float curvature) {
   for (const Vector2f& point : point_cloud) {
     if (_is_in_path(point, curvature, length, r1, r2)) {
       const float point_dist = _arc_distance_safe(point, curvature);
-      visualization::DrawCross(point, 0.1f, 0x117dff, local_viz_msg_);
+      visualization::DrawCross(point, 0.1, 0x117dff, local_viz_msg_);
       if (point_dist < length) {
         length = point_dist;
       }
@@ -300,7 +300,7 @@ float Navigation::_get_best_curvature() {
 
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
-    visualization::DrawCross(closest_approach, 0.2, 0x107010, local_viz_msg_);
+    visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
     const float free_path_length =
         min(_get_free_path_length(curvature), _arc_distance(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
