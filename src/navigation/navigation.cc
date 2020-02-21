@@ -101,7 +101,6 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 
 void Navigation::ObservePointCloud(double time) {
   for (auto point : point_cloud) {
-    // std::cout << point[0] << ", " << point[1] << std::endl;
     visualization::DrawCross(point, 0.1f, 0xd67d00, local_viz_msg_);
   }
 }
@@ -122,6 +121,7 @@ void Navigation::_update_vel_and_accel(float stop_position, float actuation_posi
                                        float actuation_speed, float target_position) {
   float output_accel = 0.f;
   float output_speed = 0.f;
+
   if (stop_position > target_position) {
     // decelerate
     const float remaining_distance = target_position - actuation_position;
@@ -142,8 +142,6 @@ void Navigation::_update_vel_and_accel(float stop_position, float actuation_posi
 }
 
 AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvature) {
-  // Vector2f direction(1, 0);
-
   // past state at sensor read
   const float sensor_speed = _velocity.norm();
   const float sensor_position = _distance;
@@ -166,22 +164,9 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
 
   _update_vel_and_accel(stop_position, actuation_position, actuation_speed, distance);
 
-  // Normalize the direction so we don't get a velocity greater than max
-  // direction = direction / direction.norm();
-
   AckermannCurvatureDriveMsg msg;
-  msg.velocity = _toc_speed; //* direction;
+  msg.velocity = _toc_speed;
   msg.curvature = curvature;
-
-  // std::cout << "_velocity=" << _velocity << std::endl;
-  // std::cout << "sensor_speed=" << sensor_speed << std::endl;
-  // std::cout << "sensor_position=" << sensor_position << std::endl;
-  // std::cout << "_odom_loc:" << std::endl << _odom_loc << std::endl;
-  // std::cout << "_target_position=" << _target_position << std::endl;
-  // std::cout << "stop_position=" << stop_position << std::endl;
-  // std::cout << "_last_accel=" << _last_accel << std::endl;
-  // std::cout << "Sending velocity: " << msg.velocity << std::endl;
-  // std::cout << std::endl;
 
   return msg;
 }
@@ -251,7 +236,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   float clearance = MAX_CLEARANCE;
 
   // TODO: this is really big when free_path_length is really big. Seems wrong
-  float theta_max = curvature * free_path_length; 
+  float theta_max = 3.14 / 2.f;
 
   if (abs(curvature) < kEpsilon) {
     for (const Vector2f& point : point_cloud) {
@@ -270,7 +255,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
 
   for (const Vector2f& point : point_cloud) { 
     float theta = std::atan2(point[0], r_turn - point[1]);
-    std::cout << theta_max << std::endl;
+    // std::cout << theta_max << std::endl;
     if (theta < 0 || theta > theta_max) { continue; }
 
     float point_radius = (center - point).norm();
