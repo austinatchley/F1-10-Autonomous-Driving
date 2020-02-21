@@ -290,6 +290,7 @@ float Navigation::_get_best_curvature() {
 
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
+    visualization::DrawCross(closest_approach, 0.2, 0x107010, local_viz_msg_);
     const float free_path_length =
         min(_get_free_path_length(curvature), _distance_to_point(closest_approach, curvature));
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
