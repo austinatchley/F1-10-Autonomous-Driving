@@ -234,7 +234,7 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
   const float radius = 1.f / curvature;
   const Vector2f center(0, radius);
   const Vector2f direction = (carrot - center).normalized();
-  return direction * radius;
+  return center + direction * abs(radius);
 }
 
 float Navigation::_get_clearance(float curvature, float free_path_length) {
