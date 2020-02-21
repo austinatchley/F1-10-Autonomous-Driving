@@ -57,7 +57,7 @@ public:
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
-  static constexpr float WEIGHT_CLEARANCE = 100.f;
+  static constexpr float WEIGHT_CLEARANCE = 1.f;
   static constexpr float WEIGHT_DISTANCE = -1.f;
 
   static constexpr float MAX_CLEARANCE = 1.f;
