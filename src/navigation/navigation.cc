@@ -173,7 +173,7 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
 
 bool Navigation::_is_in_straight_path(const Vector2f& p, float remaining_distance) {
   // std::cout << p[0] << ", " << p[1] << std::endl;
-  return abs(p[1]) < CAR_W && p[0] > 0.f && p[0] < remaining_distance;
+  return abs(p[1]) < CAR_W && p.x() > 0.f && p.x() < remaining_distance;
 }
 
 bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining_distance, float r1,
@@ -186,7 +186,7 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 
   float r = (p - c).norm();
 
-  float theta = std::atan2(p[0], r - p[1]);
+  float theta = std::atan2(p.x(), r - p[1]);
 
   return r >= r1 && r <= r2 && theta > 0;
 }
@@ -250,13 +250,13 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
 float Navigation::_get_clearance(float curvature, float free_path_length) {
   float clearance = MAX_CLEARANCE;
 
-  // TODO: this is really big when free_path_length is really big. Seems wrong
-  float theta_max = 3.14 / 2.f;
+  // Clamp to [-HALF_PI, HALF_PI]
+  float theta_max = min(3.14 / 2.f, max(-3.14 / 2.f, curvature * free_path_length));
 
   if (abs(curvature) < kEpsilon) {
     for (const Vector2f& point : point_cloud) {
-      if (point[0] < free_path_length && point[0] > 0.f) {
-        clearance = min(clearance, max(0.f, abs(point[1]) - (CAR_W / 2.f)));
+      if (point.x() < free_path_length && point.x() > 0.f) {
+        clearance = min(clearance, max(0.f, abs(point.y()) - (CAR_W / 2.f)));
       }
     }
 
@@ -269,7 +269,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
-    float theta = std::atan2(point[0], r_turn - point[1]);
+    float theta = std::atan2(point.x(), r_turn - point.y());
     // std::cout << theta_max << std::endl;
     if (theta < 0 || theta > theta_max) {
       continue;
