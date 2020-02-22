@@ -193,12 +193,12 @@ bool Navigation::_is_in_path(const Vector2f& p, float curvature, float remaining
 
 float Navigation::_arc_distance(const Vector2f& p, float curvature) {
   if (abs(curvature) < kEpsilon) {
-    return p.x() - CAR_L;
+    return p.x();
   }
 
-  const float r_turn = 1.f / curvature;
+  const float r_turn = abs(1.f / curvature);
 
-  float theta = std::atan2(p.x(), r_turn - p.y());
+  float theta = std::atan2(p.x(), r_turn - abs(p.y()));
   return r_turn * theta;
 }
 
@@ -292,7 +292,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
-  const int n = 255;
+  const int n = 33;
   const float step_size = (max_curvature - min_curvature) / n;
 
   float max_score = 0;
