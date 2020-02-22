@@ -100,9 +100,6 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
 }
 
 void Navigation::ObservePointCloud(double time) {
-  for (auto point : point_cloud) {
-    visualization::DrawCross(point, 0.1f, 0xd67d00, local_viz_msg_);
-  }
 }
 
 void Navigation::_time_integrate() {
