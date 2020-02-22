@@ -250,9 +250,6 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
 float Navigation::_get_clearance(float curvature, float free_path_length) {
   float clearance = MAX_CLEARANCE;
 
-  // Clamp to [-HALF_PI, HALF_PI]
-  float theta_max = min(3.14f / 2.f, max(-3.14f / 2.f, curvature * free_path_length));
-
   if (abs(curvature) < kEpsilon) {
     for (const Vector2f& point : point_cloud) {
       if (point.x() < free_path_length && point.x() > 0.f) {
@@ -269,9 +266,8 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   const float r2 = sqrt(pow(abs(r_turn) + CAR_W, 2) + pow(CAR_L, 2));
 
   for (const Vector2f& point : point_cloud) {
-    float theta = std::atan2(point.x(), r_turn - point.y());
-    // std::cout << theta_max << std::endl;
-    if (theta < 0 || theta > theta_max) {
+    const float arc_distance = _arc_distance(point, curvature);
+    if (arc_distance < 0 || arc_distance > free_path_length) {
       continue;
     }
 
