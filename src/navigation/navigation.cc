@@ -323,16 +323,14 @@ float Navigation::_get_best_curvature() {
 void Navigation::Run() {
   _time_integrate();
 
-  _nav_goal_loc = Vector2f(0.2f, 0.f);
+  _nav_goal_loc = Vector2f(3.f, 0.f);
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
   visualization::DrawPathOption(curvature, free_path_length,
                                 _get_clearance(curvature, free_path_length), local_viz_msg_);
-  std::cout << "Free path length: " << free_path_length << std::endl;
 
   float target_position = min(_target_position, _distance + free_path_length);
-  std::cout << "Target position: " << target_position << std::endl;
 
   auto msg = _perform_toc(target_position, curvature);
 
@@ -344,7 +342,6 @@ void Navigation::Run() {
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
-
   visualization::ClearVisualizationMsg(local_viz_msg_);
 }
 
