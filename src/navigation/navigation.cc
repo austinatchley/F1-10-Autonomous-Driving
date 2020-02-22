@@ -328,7 +328,7 @@ void Navigation::Run() {
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
   visualization::DrawPathOption(curvature, free_path_length,
-                                _get_clearance(curvature, free_path_length), local_viz_msg_);
+                                _get_clearance(curvature, free_path_length) + CAR_W, local_viz_msg_);
 
   float target_position = min(_target_position, _distance + free_path_length);
 
