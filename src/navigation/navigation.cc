@@ -254,7 +254,7 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   if (abs(curvature) < kEpsilon) {
     for (const Vector2f& point : point_cloud) {
       if (point.x() < free_path_length && point.x() > 0.f) {
-        clearance = min(clearance, max(0.f, abs(point.y()) - (CAR_W / 2.f)));
+        clearance = min(clearance, max(0.f, abs(point.y()) - CAR_W));
       }
     }
 
