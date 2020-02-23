@@ -204,9 +204,9 @@ float Navigation::_arc_distance_safe(const Vector2f& p, float curvature) {
     return p.x() - CAR_L;
   }
 
-  const float r_turn = 1.f / curvature;
+  const float r_turn = abs(1.f / curvature);
 
-  float theta = std::atan2(p.x(), r_turn - p.y());
+  float theta = std::atan2(p.x(), r_turn - abs(p.y()));
   float omega = std::atan2(CAR_L, r_turn - CAR_W);
   float phi = theta - omega;
 
