@@ -50,8 +50,8 @@ struct PathOption {
 
 class Navigation {
 public:
-  static constexpr float MAX_SPEED = .25f;
-  static constexpr float MAX_ACCEL = 3.f;
+  static constexpr float MAX_SPEED = 5.f;
+  static constexpr float MAX_ACCEL = 5.f;
   static constexpr float MAX_DECEL = 3.f;
 
   static constexpr float LATENCY = 0.085f;
@@ -108,6 +108,7 @@ private:
 
   float _path_score(float curvature);
   float _get_best_curvature();
+  float _golden_section_search(float c0, float c1);
   float _get_free_path_length(float curvature);
   float _get_clearance(float curvature, float free_path_length);
 

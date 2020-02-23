@@ -309,7 +309,7 @@ float Navigation::_path_score(float curvature) {
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
-  const int n = 51;
+  const int n = 15;
   const float step_size = (max_curvature - min_curvature) / (n - 1);
 
   float max_score = 0;
@@ -323,9 +323,31 @@ float Navigation::_get_best_curvature() {
       max_score = score;
     }
   }
+  
+  float c0 = max(best_curvature - step_size, min_curvature);
+  float c1 = min(best_curvature + step_size, max_curvature);
+  return _golden_section_search(c0, c1);
+}
 
-  // std::cout << _path_score(best_curvature) << std::endl;
-  return best_curvature;
+/**
+ * Perform Golden Section Search to find local max of path score
+ * on the interval we found using naive search
+ */
+float Navigation::_golden_section_search(float c0, float c1) {
+  static constexpr float phi = 0.618;
+  
+  for (int i = 0; i < 6; ++i) {
+    float c2 = c1 - (c1 - c0) * phi;
+    float c3 = c0 + (c1 - c0) * phi;
+
+    if (_path_score(c2) > _path_score(c3)) {
+      c1 = c3;
+    } else {
+      c0 = c2;
+    }
+  }
+
+  return (c0 + c1) / 2.f;
 }
 
 void Navigation::Run() {
