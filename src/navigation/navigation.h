@@ -106,6 +106,7 @@ private:
   float _arc_distance(const Eigen::Vector2f& p, float curvature);
   Eigen::Vector2f _closest_approach(const float curvature, const Eigen::Vector2f& carrot);
 
+  float _path_score(float curvature);
   float _get_best_curvature();
   float _get_free_path_length(float curvature);
   float _get_clearance(float curvature, float free_path_length);

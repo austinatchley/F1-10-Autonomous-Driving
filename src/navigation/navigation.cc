@@ -282,6 +282,22 @@ float Navigation::_get_clearance(float curvature, float free_path_length) {
   return clearance;
 }
 
+float Navigation::_path_score(float curvature) {
+    const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
+
+    const float free_path_length =
+        min(_get_free_path_length(curvature), _arc_distance(closest_approach, curvature));
+
+    const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
+    const float clearance = _get_clearance(curvature, free_path_length);
+    const float score =
+        free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
+
+    visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
+    visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
+    return score;
+}
+
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
@@ -292,22 +308,11 @@ float Navigation::_get_best_curvature() {
   float best_curvature = 0;
 
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
-    const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
-    visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
-
-    const float free_path_length =
-        min(_get_free_path_length(curvature), _arc_distance(closest_approach, curvature));
-
-    const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    const float clearance = _get_clearance(curvature, free_path_length);
-    const float score =
-        free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
-
+    const float score = _path_score(curvature);
     if (score > max_score) {
       best_curvature = curvature;
       max_score = score;
     }
-    visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
   }
 
   return best_curvature;
