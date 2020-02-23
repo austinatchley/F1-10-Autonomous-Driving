@@ -286,10 +286,12 @@ float Navigation::_path_score(float curvature) {
     const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
 
     const float free_path_length =
-        min(_get_free_path_length(curvature), _arc_distance(closest_approach, curvature));
+        min(_get_free_path_length(curvature), _arc_distance_safe(closest_approach, curvature));
 
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    const float clearance = _get_clearance(curvature, free_path_length);
+    float clearance = _get_clearance(curvature, free_path_length) - 0.1;
+    if (clearance < 0)
+      clearance = -1000000.f;
     const float score =
         free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
 
