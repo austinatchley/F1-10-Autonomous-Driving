@@ -303,12 +303,13 @@ float Navigation::_path_score(float curvature) {
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
-  const int n = 33;
-  const float step_size = (max_curvature - min_curvature) / n;
+  const int n = 51;
+  const float step_size = (max_curvature - min_curvature) / (n - 1);
 
   float max_score = 0;
   float best_curvature = 0;
 
+  // coarse search
   for (float curvature = min_curvature; curvature < max_curvature; curvature += step_size) {
     const float score = _path_score(curvature);
     if (score > max_score) {
@@ -323,7 +324,7 @@ float Navigation::_get_best_curvature() {
 void Navigation::Run() {
   _time_integrate();
 
-  _nav_goal_loc = Vector2f(5.f, 0.f);
+  _nav_goal_loc = Vector2f(8.f, 0.f);
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
