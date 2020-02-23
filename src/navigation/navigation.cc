@@ -321,7 +321,7 @@ float Navigation::_get_best_curvature() {
 void Navigation::Run() {
   _time_integrate();
 
-  _nav_goal_loc = Vector2f(3.f, 0.f);
+  _nav_goal_loc = Vector2f(5.f, 0.f);
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
