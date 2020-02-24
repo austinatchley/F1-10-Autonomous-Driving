@@ -293,9 +293,9 @@ float Navigation::_path_score(float curvature) {
         min(_get_free_path_length(curvature), _arc_distance_safe(closest_approach, curvature));
 
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    float clearance = _get_clearance(curvature, free_path_length) - 0.1;
+    float clearance = _get_clearance(curvature, free_path_length) - WALL_AVOID_DISTANCE;
     if (clearance < 0) {
-      clearance *= 5.f;
+      clearance *= -WEIGHT_AVOID_WALLS;
     }
 
     const float score =
