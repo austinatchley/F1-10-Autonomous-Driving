@@ -310,7 +310,7 @@ float Navigation::_path_score(float curvature) {
     const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - min_clearance) * WEIGHT_AVOID_WALLS;
 
     const float score =
-        free_path_length + pow(free_path_length, 1.5) * WEIGHT_CLEARANCE * min_clearance + WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
+        free_path_length + pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance + WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
 
     visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
     visualization::DrawPathOption(curvature, free_path_length, min_clearance, local_viz_msg_);
