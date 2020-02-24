@@ -307,7 +307,7 @@ float Navigation::_path_score(float curvature) {
 float Navigation::_get_best_curvature() {
   const float min_curvature = -1;
   const float max_curvature = 1;
-  const int n = 15;
+  const int n = 51;
   const float step_size = (max_curvature - min_curvature) / (n - 1);
 
   float max_score = 0;
