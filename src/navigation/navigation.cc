@@ -336,7 +336,7 @@ float Navigation::_get_best_curvature() {
 float Navigation::_golden_section_search(float c0, float c1) {
   static constexpr float phi = 0.618;
   
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < 12; ++i) {
     float c2 = c1 - (c1 - c0) * phi;
     float c3 = c0 + (c1 - c0) * phi;
 
