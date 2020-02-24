@@ -293,16 +293,14 @@ float Navigation::_path_score(float curvature) {
         min(_get_free_path_length(curvature), _arc_distance_safe(closest_approach, curvature));
 
     const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    float clearance = _get_clearance(curvature, free_path_length) - WALL_AVOID_DISTANCE;
-    if (clearance < 0) {
-      clearance *= -WEIGHT_AVOID_WALLS;
-    }
+    const float clearance = _get_clearance(curvature, free_path_length);
+    const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - clearance) * WEIGHT_AVOID_WALLS;
 
     const float score =
-        free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target;
+        free_path_length + WEIGHT_CLEARANCE * clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
 
     visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
-    visualization::DrawPathOption(curvature, free_path_length, 0, local_viz_msg_);
+    visualization::DrawPathOption(curvature, free_path_length, clearance, local_viz_msg_);
     return score;
 }
 
