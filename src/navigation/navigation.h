@@ -58,6 +58,7 @@ public:
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
   static constexpr float WEIGHT_CLEARANCE = 0.f;
+  static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
   static constexpr float WEIGHT_DISTANCE = 0.0f;
   static constexpr float WEIGHT_AVOID_WALLS = 10.f;
   static constexpr float WALL_AVOID_DISTANCE = 0.3f;
@@ -112,7 +113,7 @@ private:
   float _get_best_curvature();
   float _golden_section_search(float c0, float c1);
   float _get_free_path_length(float curvature);
-  float _get_clearance(float curvature, float free_path_length);
+  void _get_clearance(float& min_clearance, float& avg_clearance, float curvature, float free_path_length);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
