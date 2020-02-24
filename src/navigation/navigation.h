@@ -59,7 +59,7 @@ public:
 
   static constexpr float WEIGHT_CLEARANCE = 6.f;
   static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
-  static constexpr float WEIGHT_DISTANCE = 0.0f;
+  static constexpr float WEIGHT_DISTANCE = -0.1f;
   static constexpr float WEIGHT_AVOID_WALLS = 0.f;
   static constexpr float WALL_AVOID_DISTANCE = 0.1f;
 
