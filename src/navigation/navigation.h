@@ -35,7 +35,7 @@ namespace navigation {
 static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
-static constexpr float CAR_W = .281 / 2; // Half the width of the car
+static constexpr float CAR_W = .281 / 2 + 0.05f; // Half the width of the car
 static constexpr float CAR_L = .43 + 0.1;      // Length of car
 static constexpr float LASER_OFFSET = .2;      // Distance between laser and base_link
 
@@ -50,20 +50,20 @@ struct PathOption {
 
 class Navigation {
 public:
-  static constexpr float MAX_SPEED = 2.f;
+  static constexpr float MAX_SPEED = 1.f;
   static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
 
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
-  static constexpr float WEIGHT_CLEARANCE = 0.f;
+  static constexpr float WEIGHT_CLEARANCE = 4.f;
   static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
   static constexpr float WEIGHT_DISTANCE = 0.0f;
-  static constexpr float WEIGHT_AVOID_WALLS = 10.f;
-  static constexpr float WALL_AVOID_DISTANCE = 0.3f;
+  static constexpr float WEIGHT_AVOID_WALLS = 0.f;
+  static constexpr float WALL_AVOID_DISTANCE = 0.1f;
 
-  static constexpr float MAX_CLEARANCE = .5f;
+  static constexpr float MAX_CLEARANCE = .33f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
