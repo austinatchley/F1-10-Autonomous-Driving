@@ -35,7 +35,7 @@ namespace navigation {
 static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
-static constexpr float CAR_W = .281 / 2 + 0.1; // Half the width of the car
+static constexpr float CAR_W = .281 / 2; // Half the width of the car
 static constexpr float CAR_L = .43 + 0.1;      // Length of car
 static constexpr float LASER_OFFSET = .2;      // Distance between laser and base_link
 
