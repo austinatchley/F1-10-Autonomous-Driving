@@ -50,17 +50,17 @@ struct PathOption {
 
 class Navigation {
 public:
-  static constexpr float MAX_SPEED = 5.f;
-  static constexpr float MAX_ACCEL = 5.f;
+  static constexpr float MAX_SPEED = 2.f;
+  static constexpr float MAX_ACCEL = 3.f;
   static constexpr float MAX_DECEL = 3.f;
 
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
-  static constexpr float WEIGHT_CLEARANCE = 16.0f;
+  static constexpr float WEIGHT_CLEARANCE = 8.f;
   static constexpr float WEIGHT_DISTANCE = 0.0f;
 
-  static constexpr float MAX_CLEARANCE = .5f;
+  static constexpr float MAX_CLEARANCE = .33f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
