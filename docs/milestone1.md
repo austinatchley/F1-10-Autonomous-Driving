@@ -46,6 +46,8 @@ We calculate the obstacle avoidance reward for each path with the following:
 R(c) = free_path_length(c) + (free_path_length^2 * clearance(c) * clearance_weight) + (distance_to_target * distance_weight)
 ```
 
+See Section 3 for explanation.
+
 ### Obstacle avoidance integration:
 
 We optimize the function on the interval of possible curvatures at each timestep by performing a naive search with a set number of discrete steps. After choosing the best curvature, we perform a [Golden Section Search](https://en.wikipedia.org/wiki/Golden-section_search) on the interval surrounding the best curvature.
@@ -56,6 +58,16 @@ We optimize the function on the interval of possible curvatures at each timestep
 
 ## 3. Parameter tuning:
 
+We tuned our parameters primarily through trial and error. We put a lot of effort into visualization up front, and it paid off in the end because we could see exactly what our car was choosing to do. The values we settled on were the following:
+
+- clearance_weight: 8
+- distance_weight: -0.1
+
+We increased clearance_weight until the car avoided the cones that we used for testing. After this, we did more fine-tuning on distance_weight. We found that values that were too high forced us to run into obstacles head-on. Our theory is that this was because when we are close to obstacles, a sharp turn is necessary to avoid the obstacle. Such a sharp turn would increase the free path length, but because this turn is very sharp, the distance to target actually increases.
+
+*insert image here*
+
+Because of this phenomenon, we decided to alter the scoring function. We multiply the clearance by the free path length squared in order to discourage the car from moving into a position with high clearance and low free path length (i.e. straight into a wall).
 
 ## 4. Challenges faced:
 
