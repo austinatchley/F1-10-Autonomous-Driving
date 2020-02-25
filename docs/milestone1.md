@@ -90,7 +90,7 @@ All mission-critical code was pair-programmed, with Logan primarily committing.
 
 ## 7. Video Demos
 
-[]()
+[Video demo of slalom](https://photos.app.goo.gl/88f5tYdzNYGxQoLw9)
 
 ## 8. Future improvements:
 
