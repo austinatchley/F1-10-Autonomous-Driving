@@ -76,6 +76,7 @@ Because of this phenomenon, we decided to alter the scoring function. We multipl
 
 ## 4. Challenges faced:
 
+We were not sure if our bugs were logic errors or incorrect tunings of parameters for most of the development time. On top of this, we were tuning in several dimensions concurrently.
 
 ## 5. Contributions of each team member:
 
@@ -93,5 +94,4 @@ All mission-critical code was pair-programmed, with Logan primarily committing.
 [Video demo of slalom](https://photos.app.goo.gl/88f5tYdzNYGxQoLw9)
 
 ## 8. Future improvements:
-
 
