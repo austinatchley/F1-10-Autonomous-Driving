@@ -1,3 +1,10 @@
+---
+header-includes:
+  - \hypersetup{colorlinks=true,
+            allbordercolors={0 0 0},
+            pdfborderstyle={/S/U/W 1}}
+---
+
 # Checkpoint 1.3 Progress Report
 
 Logan Zartman
@@ -24,9 +31,10 @@ Austin Atchley
     3. Else accelerate at max acceleration
 
 ### LIDAR to point cloud computation:
-for each point in point cloud:
-    theta_i = theta_0 + i * theta_increment
-    p_i = {r_i * cos(theta_i), r_i * sin(theta_i)}
+
+    for each point in point cloud:
+        theta_i = theta_0 + i * theta_increment
+        p_i = {r_i * cos(theta_i), r_i * sin(theta_i)}
 
 ### Obstacle detection computation:
 1. Given command line flags for max distance and curvature
@@ -43,7 +51,8 @@ for each point in point cloud:
 We calculate the obstacle avoidance reward for each path with the following:
 
 ```
-R(c) = free_path_length(c) + (free_path_length^2 * clearance(c) * clearance_weight) + (distance_to_target * distance_weight)
+R(c) = free_path_length(c) + (free_path_length(c)^2 * clearance(c) * clearance_weight) 
+       + (distance_to_target * distance_weight)
 ```
 
 See Section 3 for explanation.
