@@ -55,6 +55,17 @@ We optimize the function on the interval of possible curvatures at each timestep
 
 ## 2. Code organization:
 
+`Run()` computes robot motion each frame using the following logic:
+
+- Call `get_best_curvature()` to find the optimal path
+    - Search the interval of possible curvatures in a discrete number of steps. For each curvature, call `path_score()` to evaluate it
+        - Compute free path length using `get_free_path_length()`
+        - Compute distance from `closest_approach()` to goal
+        - Compute clearance using `get_clearance()`
+        - Combine weighted factors into resulting score
+    - Refine the best curvature using golden section search
+- Call `perform_toc()` to update time optimal controller state given new parameters
+
 
 ## 3. Parameter tuning:
 
