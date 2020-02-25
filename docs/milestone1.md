@@ -74,11 +74,11 @@ Because of this phenomenon, we decided to alter the scoring function. We multipl
 
 ## 5. Contributions of each team member:
 
-Austin - 
+Austin - Parameter tuning, implementation of Golden Section Search, structure of general approach
 
-Logan - 
+Logan - Parameter tuning, visualization, implementation of _get_best_curvature.
 
-All of the code was pair-programmed with Logan primarily committing.
+All mission-critical code was pair-programmed, with Logan primarily committing.
 
 ## 6. GitHub Repo
 [https://github.com/austinatchley/F1-10-Autonomous-Driving](https://github.com/austinatchley/F1-10-Autonomous-Driving)
