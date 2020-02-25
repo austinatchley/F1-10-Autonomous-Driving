@@ -65,7 +65,10 @@ We tuned our parameters primarily through trial and error. We put a lot of effor
 
 We increased clearance_weight until the car avoided the cones that we used for testing. After this, we did more fine-tuning on distance_weight. We found that values that were too high forced us to run into obstacles head-on. Our theory is that this was because when we are close to obstacles, a sharp turn is necessary to avoid the obstacle. Such a sharp turn would increase the free path length, but because this turn is very sharp, the distance to target actually increases.
 
-*insert image here*
+![good](good_avoid.png){ width=250px }
+![bad](bad_avoid.png){ width=250px }
+
+*Left: Good avoidance scenario; the avoiding path reduces distance to goal. Right: Bad avoidance scenario; the avoiding path does not reduce distance to goal.*
 
 Because of this phenomenon, we decided to alter the scoring function. We multiply the clearance by the free path length squared in order to discourage the car from moving into a position with high clearance and low free path length (i.e. straight into a wall).
 
