@@ -95,3 +95,4 @@ All mission-critical code was pair-programmed, with Logan primarily committing.
 
 ## 8. Future improvements:
 
+We would like to make the joystick move the 'carrot.' We would also like to use a better score function if there is one. We will do some research on the topic.
