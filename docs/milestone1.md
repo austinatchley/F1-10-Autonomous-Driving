@@ -40,8 +40,15 @@ for each point in point cloud:
 
 ### Obstacle avoidance reward function:
 
+We calculate the obstacle avoidance reward for each path with the following:
 
-### Reward function integration:
+```
+R(c) = free_path_length(c) + (free_path_length^2 * clearance(c) * clearance_weight) + (distance_to_target * distance_weight)
+```
+
+### Obstacle avoidance integration:
+
+We optimize the function on the interval of possible curvatures at each timestep by performing a naive search with a set number of discrete steps. After choosing the best curvature, we perform a [Golden Section Search](https://en.wikipedia.org/wiki/Golden-section_search) on the interval surrounding the best curvature.
 
 
 ## 2. Code organization:
