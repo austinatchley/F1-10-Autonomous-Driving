@@ -75,9 +75,22 @@ void ParticleFilter::Resample() {}
 void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, float range_max,
                                   float angle_min, float angle_max) {}
 
-void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {}
+void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
+  if (not _odom_initialized)
+    return;
+  _prev_odom_loc = odom_loc;
+  _prev_odom_angle = odom_angle;
+}
 
-void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, const float angle) {}
+void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, const float angle) {
+  for (int i = 0; i < FLAGS_num_particles; ++i) {
+    _particles.push_back(Particle{loc, angle, 1.0});
+  }
+  _map.Load(map_file);
+  _prev_odom_loc = loc;
+  _prev_odom_angle = angle;
+  _odom_initialized = true;
+}
 
 void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) const {}
 
