@@ -74,18 +74,18 @@ public:
 
 private:
   // List of particles being tracked.
-  std::vector<Particle> particles_;
+  std::vector<Particle> _particles;
 
   // Map of the environment.
-  vector_map::VectorMap map_;
+  vector_map::VectorMap _map;
 
   // Random number generator.
-  util_random::Random rng_;
+  util_random::Random _rng;
 
   // Previous odometry-reported locations.
-  Eigen::Vector2f prev_odom_loc_;
-  float prev_odom_angle_;
-  bool odom_initialized_;
+  Eigen::Vector2f _prev_odom_loc;
+  float _prev_odom_angle;
+  bool _odom_initialized;
 };
 } // namespace particle_filter
 

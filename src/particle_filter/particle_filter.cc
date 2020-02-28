@@ -57,10 +57,10 @@ namespace particle_filter {
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
-    : prev_odom_loc_(0, 0), prev_odom_angle_(0), odom_initialized_(false) {}
+    : _prev_odom_loc(0, 0), _prev_odom_angle(0), _odom_initialized(false) {}
 
 void ParticleFilter::GetParticles(vector<Particle>* particles) const {
-  *particles = particles_;
+  *particles = _particles;
 }
 
 void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float angle, int num_ranges,
