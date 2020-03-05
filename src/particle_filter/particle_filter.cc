@@ -76,9 +76,11 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
                                   float angle_min, float angle_max) {}
 
 void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
-  static constexpr double k = 1.0;
-  if (not _odom_initialized)
-    return;  
+  static constexpr double k = 1.0; // TODO: Adjust this value to fit the physical behavior of the car
+
+  if (not _odom_initialized) {
+    return;
+  }
 
   const Vector2f dx = odom_loc - _prev_odom_loc;
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
@@ -86,7 +88,7 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   for (Particle& p : _particles) {
     const double len = dx.norm();
     p.loc += dx.normalized() * _rng.Gaussian(len, k * len);
-    p.angle += _rng.Gaussian(da, k * da);    
+    p.angle += _rng.Gaussian(da, k * da);
   }
 
   _prev_odom_loc = odom_loc;
