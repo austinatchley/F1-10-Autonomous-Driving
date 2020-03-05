@@ -36,8 +36,8 @@ static constexpr float RATE = 20.f;
 static constexpr float TIMESTEP = 1.f / RATE;
 
 static constexpr float CAR_W = .281 / 2 + 0.05f; // Half the width of the car
-static constexpr float CAR_L = .43 + 0.1;      // Length of car
-static constexpr float LASER_OFFSET = .2;      // Distance between laser and base_link
+static constexpr float CAR_L = .43 + 0.1;        // Length of car
+static constexpr float LASER_OFFSET = .2;        // Distance between laser and base_link
 
 struct PathOption {
   float curvature;
@@ -113,7 +113,8 @@ private:
   float _get_best_curvature();
   float _golden_section_search(float c0, float c1);
   float _get_free_path_length(float curvature);
-  void _get_clearance(float& min_clearance, float& avg_clearance, float curvature, float free_path_length);
+  void _get_clearance(float& min_clearance, float& avg_clearance, float curvature,
+                      float free_path_length);
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 

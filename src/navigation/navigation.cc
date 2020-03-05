@@ -99,8 +99,7 @@ void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f
   _odom_omega = ang_vel;
 }
 
-void Navigation::ObservePointCloud(double time) {
-}
+void Navigation::ObservePointCloud(double time) {}
 
 void Navigation::_time_integrate() {
   // TODO: better integrator
@@ -244,7 +243,8 @@ Vector2f Navigation::_closest_approach(const float curvature, const Eigen::Vecto
   return center + direction * abs(radius);
 }
 
-void Navigation::_get_clearance(float& min_clearance, float& avg_clearance, float curvature, float free_path_length) {
+void Navigation::_get_clearance(float& min_clearance, float& avg_clearance, float curvature,
+                                float free_path_length) {
   if (free_path_length < 0.f) {
     min_clearance = 0.f;
     avg_clearance = 0;
@@ -298,23 +298,23 @@ void Navigation::_get_clearance(float& min_clearance, float& avg_clearance, floa
 }
 
 float Navigation::_path_score(float curvature) {
-    const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
+  const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
 
-    const float free_path_length =
-        min(_get_free_path_length(curvature), 5.f);
+  const float free_path_length = min(_get_free_path_length(curvature), 5.f);
 
-    const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
-    float min_clearance, avg_clearance;
-    _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
+  const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
+  float min_clearance, avg_clearance;
+  _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
 
-    const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - min_clearance) * WEIGHT_AVOID_WALLS;
+  const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - min_clearance) * WEIGHT_AVOID_WALLS;
 
-    const float score =
-        free_path_length + pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance + WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
+  const float score =
+      free_path_length + pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance +
+      WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
 
-    visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
-    visualization::DrawPathOption(curvature, free_path_length, min_clearance, local_viz_msg_);
-    return score;
+  visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
+  visualization::DrawPathOption(curvature, free_path_length, min_clearance, local_viz_msg_);
+  return score;
 }
 
 float Navigation::_get_best_curvature() {
@@ -334,7 +334,7 @@ float Navigation::_get_best_curvature() {
       max_score = score;
     }
   }
-  
+
   float c0 = max(best_curvature - step_size, min_curvature);
   float c1 = min(best_curvature + step_size, max_curvature);
   return _golden_section_search(c0, c1);
@@ -346,7 +346,7 @@ float Navigation::_get_best_curvature() {
  */
 float Navigation::_golden_section_search(float c0, float c1) {
   static constexpr float phi = 0.618;
-  
+
   for (int i = 0; i < 12; ++i) {
     float c2 = c1 - (c1 - c0) * phi;
     float c3 = c0 + (c1 - c0) * phi;
@@ -371,8 +371,7 @@ void Navigation::Run() {
 
   float min_clearance, avg_clearance;
   _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
-  visualization::DrawPathOption(curvature, free_path_length,
-                                min_clearance + CAR_W, local_viz_msg_);
+  visualization::DrawPathOption(curvature, free_path_length, min_clearance + CAR_W, local_viz_msg_);
 
   float target_position = min(_target_position, _distance + free_path_length);
 
