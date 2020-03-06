@@ -93,7 +93,8 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   }
 
   const Vector2f dx = odom_loc - _prev_odom_loc;
-  const double len = dx.norm();
+  const Vector2f angle_vec(cos(odom_angle), sin(odom_angle));
+  const double len = copysign(dx.norm(), dx.dot(angle_vec));
 
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
