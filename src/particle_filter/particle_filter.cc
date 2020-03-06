@@ -33,6 +33,7 @@
 
 #include "config_reader/config_reader.h"
 #include "particle_filter.h"
+#include "navigation/navigation.h"
 
 #include "vector_map/vector_map.h"
 
@@ -114,7 +115,7 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     p.loc += (dir * len) + e_x + e_y;
     p.angle += da + _rng.Gaussian(0, k5 * len + k6 * abs(da));
 
-    if (_map.Intersects(p.loc, prev_loc)) {
+    if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
       resample_vector.push_back(&p);
     }
   }
