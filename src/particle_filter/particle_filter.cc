@@ -139,6 +139,7 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
   for (int i = 0; i < FLAGS_num_particles; ++i) {
     _particles.push_back(Particle{loc, angle, 1.0});
   }
+  _odom_initialized = false; // fix for simulator
   _map.Load(map_file);
 }
 
