@@ -99,10 +99,6 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
-  static std::vector<Particle*> resample_vector;
-  resample_vector.reserve(_particles.size());
-  resample_vector.clear();
-
   for (Particle& p : _particles) {
     const Vector2f prev_loc = p.loc;
 
@@ -116,15 +112,20 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     p.angle += da + _rng.Gaussian(0, k5 * len + k6 * abs(da));
 
     if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
-      resample_vector.push_back(&p);
+      p.needs_resample = true;
     }
   }
 
   _prev_odom_loc = odom_loc;
   _prev_odom_angle = odom_angle;
 
-  for (Particle* p : resample_vector) {
-    Resample(*p);
+  for (auto it = _particles.begin(); it != _particles.end();) {
+    const Particle& p = *it;
+    if (p.needs_resample) {
+      it = _particles.erase(it);
+      continue;
+    }
+    ++it;
   }
 }
 

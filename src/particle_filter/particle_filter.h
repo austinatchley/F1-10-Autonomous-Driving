@@ -34,9 +34,12 @@
 namespace particle_filter {
 
 struct Particle {
+  Particle(Eigen::Vector2f loc, float angle, double weight) : 
+    loc(loc), angle(angle), weight(weight) {}
   Eigen::Vector2f loc;
   float angle;
   double weight;
+  bool needs_resample = false;
 };
 
 class ParticleFilter {
