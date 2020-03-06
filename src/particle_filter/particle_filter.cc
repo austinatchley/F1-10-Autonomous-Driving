@@ -82,9 +82,13 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   static constexpr double k3 = 0.01;
   static constexpr double k4 = 0.05;
   static constexpr double k5 = 0.05;
-  static constexpr double k6 = 0.1;
+  static constexpr double k6 = 0.1; 
 
   if (not _odom_initialized) {
+    _prev_odom_loc = odom_loc;
+    _prev_odom_angle = odom_angle;
+
+    _odom_initialized = true;
     return;
   }
 
@@ -114,9 +118,6 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
     _particles.push_back(Particle{loc, angle, 1.0});
   }
   _map.Load(map_file);
-  _prev_odom_loc = loc;
-  _prev_odom_angle = angle;
-  _odom_initialized = true;
 }
 
 void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) const {}
