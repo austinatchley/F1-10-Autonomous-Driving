@@ -1,0 +1,84 @@
+ss[11pt]{article}
+
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{hyperref}
+
+\newcommand{\numpy}{{\tt numpy}}    % tt font for numpy
+\newcommand{\comment}[1]{}
+
+\hypersetup{colorlinks=true,
+            allbordercolors={0 0 0},
+            pdfborderstyle={/S/U/W 1}}
+\topmargin -.5in
+\textheight 9in
+\oddsidemargin 0in
+\evensidemargin 0in
+\textwidth 6.5in
+
+\begin{document}
+
+\author{Austin Atchley $\diamond$ Logan Zartman}
+\title{\bf{F1/10 Autonomous Driving: Checkpoint 4}}
+\maketitle
+
+\medskip
+
+
+\section{Mathematical Computation} \label{comp}
+The below equations give changes in particle position and angle in terms of changes in odometry position and angle and the current angle $\theta$ of the particle. We implement the 3rd motion model presented in the slides.
+
+\begin{equation}
+    \epsilon_x = \overrightarrow{\theta} \cdot \mathcal{N}(0, k_1 \cdot || \Delta x_{\text{odom}} || + k_2 \cdot | \Delta \theta_{\text{odom}} |)
+\end{equation}
+\begin{equation}
+    \epsilon_y = \overrightarrow{\theta}^{\perp} \cdot \mathcal{N}(0, k_3 \cdot || \Delta x_{\text{odom}} || + k_4 \cdot | \Delta \theta_{\text{odom}} |)
+\end{equation}
+\begin{equation}
+    \Delta x = \overrightarrow{\theta} \cdot || \Delta x_{\text{odom}} ||
+    + \epsilon_x + \epsilon_y
+\end{equation}
+\begin{equation}
+    \Delta \theta = \Delta \theta_{\text{odom}} + \mathcal{N}(0, k_5 \cdot || \Delta x_{\text{odom}} || + k_6 \cdot | \Delta \theta_{\text{odom}} |)
+\end{equation}
+
+We use different distributions for the tangential ($x$) and perpendicular ($y$) error in translation. Therefore there are 6 constants that define our model.
+
+
+\section{Code Organization}
+The entirety of the code we wrote for this checkpoint is in $\texttt{particle\_filter/particle\_filter.cc}$ and the associated header file. We filled in the provided callbacks $\texttt{ParticleFilter::Initialize}$ and
+$\texttt{ParticleFilter::ObserveOdometry}$, and we made a helper function for particles that need to be resampled. This will be filled in later when we implement the resampling feature of our particle filter.
+
+We implement the motion model described in Section \ref{comp} in $\texttt{ParticleFilter::ObserveOdometry}$, and we have tuned the parameters it uses by intuition and observation on the physical car. On each iteration through the vector of particles in $\texttt{ParticleFilter::ObserveOdometry}$, we set a flag on particles that need to be resampled. After iterating through the vector, we perform another loop that performs $\texttt{ParticleFilter::Resample}$ on the indicated particles. Currently, we remove all resampled particles instead of resampling them. We will implement resampling in a later checkpoint.
+
+
+\section{Challenges Faced}
+We faced a bit of conceptual difficulty in converting between coordinate frames, but we were never blocked for long.
+
+
+\section{Contributions}
+Austin -- Motion model implementation\\
+Logan -- Architecture of approach, vector math
+
+\hfill \break
+We pair programmed everything on this project.
+
+
+\section{GitHub Repository}
+\url{http://github.com/austinatchley/F1-10-Autonomous-Driving}
+
+
+\section{Video Demos}
+\href{https://drive.google.com/open?id=1znc63PhqySLQFec6sGqk9LTC95YbCcTg}{Demo in visualizer} \\ 
+\href{https://photos.app.goo.gl/bFCGwkKLFGnqaPvr5}{Demo on car}\\
+\href{https://drive.google.com/file/d/1dLPc_b5GYV3OAEe9qSnnM5QjDSqa-gy0/view?usp=sharing}{Extra credit in visualizer}
+
+
+\section{Remove Hypotheses That Drive Through Wall}
+We draw a line between each point's previous location and its updated location, accounting for the length of the car. We ask our $\texttt{vector\_map}$ to check for intersections with the walls. If there is an intersection between one of the lines and one of the walls, we set a $\texttt{needs\_resample}$ flag. After iterating through all the particles once, we go back through and clean up particles with this flag set. We do this to avoid concurrent modification of the vector and to support efficient resampling in future checkpoints.
+
+
+\section{Further Improvements}
+We would like to make our system more accurate going backwards. We thought we might use different constants when going backwards, because there is more error. We also hope to more precisely tune our error constants.
+
+\end{document}
