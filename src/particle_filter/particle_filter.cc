@@ -91,16 +91,16 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   const Vector2f dx = odom_loc - _prev_odom_loc;
   const double len = dx.norm();
 
-  const Vector2f dir = dx.normalized();
-  const Vector2f perp_dir = dir.head<3>().cross(Eigen::Vector3f(0, 0, 1)).head<2>();
-
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
   for (Particle& p : _particles) {
+    const Vector2f dir(cos(p.angle), sin(p.angle));
+    const Vector2f perp_dir(cos(p.angle + M_PI / 2.f), sin(p.angle + M_PI / 2.f));
+
     const Vector2f e_x = dir * _rng.Gaussian(0, k1 * len + k2 * abs(da));
     const Vector2f e_y = perp_dir * _rng.Gaussian(0, k3 * len + k4 * abs(da));
 
-    p.loc += dx + e_x + e_y;
+    p.loc += (dir * len) + e_x + e_y;
     p.angle += da + _rng.Gaussian(0, k5 * len + k6 * abs(da));
   }
 
