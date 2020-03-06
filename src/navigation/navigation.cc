@@ -312,7 +312,6 @@ float Navigation::_path_score(float curvature) {
       free_path_length + pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance +
       WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
 
-  visualization::DrawPoint(closest_approach, 0x107010, local_viz_msg_);
   visualization::DrawPathOption(curvature, free_path_length, min_clearance, local_viz_msg_);
   return score;
 }
