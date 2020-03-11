@@ -116,7 +116,7 @@ void PublishPredictedScan() {
   vector<Vector2f> predicted_scan;
   particle_filter_.GetPredictedPointCloud(robot_loc, robot_angle, last_laser_msg_.ranges.size(),
                                           last_laser_msg_.range_min, last_laser_msg_.range_max,
-                                          last_laser_msg_.angle_min, last_laser_msg_.angle_max,
+                                          last_laser_msg_.angle_min, last_laser_msg_.angle_max, last_laser_msg_.angle_increment,
                                           &predicted_scan);
   for (const Vector2f& p : predicted_scan) {
     DrawPoint(p, kColor, vis_msg_);
@@ -152,7 +152,7 @@ void PublishVisualization() {
   ClearVisualizationMsg(vis_msg_);
 
   PublishParticles();
-  // PublishPredictedScan();
+  PublishPredictedScan();
   PublishTrajectory();
   visualization_publisher_.publish(vis_msg_);
 }

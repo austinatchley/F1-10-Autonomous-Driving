@@ -74,7 +74,7 @@ public:
 
   // For debugging: get predicted point cloud from current location.
   void GetPredictedPointCloud(const Eigen::Vector2f& loc, const float angle, int num_ranges,
-                              float range_min, float range_max, float angle_min, float angle_max,
+                              float range_min, float range_max, float angle_min, float angle_max, float angle_increment,
                               std::vector<Eigen::Vector2f>* scan);
 
 private:

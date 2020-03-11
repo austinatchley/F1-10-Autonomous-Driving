@@ -66,7 +66,27 @@ void ParticleFilter::GetParticles(vector<Particle>* particles) const {
 
 void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float angle, int num_ranges,
                                             float range_min, float range_max, float angle_min,
-                                            float angle_max, vector<Vector2f>* scan_ptr) {}
+                                            float angle_max, float angle_increment, vector<Vector2f>* scan_ptr) {
+  /*
+  // Location of the laser on the robot. Assumes the laser is forward-facing.
+  for (uint32_t i = 0; i < num_ranges; ++i) {
+    const float range = ranges[i];
+
+    if (range > range_max + navigation::kEpsilon || range < range_min) {
+      continue;
+    }
+
+    const float theta = angle_min + (angle_increment * i);
+    const float x = range * cos(theta);
+    const float y = range * sin(theta);
+
+    Vector2f collision = raycast(_mean_pose + navigation::LASER_OFFSET);
+    if (collision == 
+
+    predicted_points.push_back(collision);
+  }
+  */
+}
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
                             float angle_min, float angle_max, Particle* p_ptr) {}
