@@ -99,6 +99,9 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
+  Vector2f sum_loc(0.f, 0.f);
+  Vector2f sum_angle_vec(0.f, 0.f);
+
   for (Particle& p : _particles) {
     const Vector2f prev_loc = p.loc;
 
@@ -113,6 +116,9 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
     if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
       p.needs_resample = true;
+    } else {
+      sum_loc += p.loc;
+      sum_angle_vec += Vector2f(cos(p.angle), sin(p.angle));
     }
   }
 
@@ -127,6 +133,10 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     }
     ++it;
   }
+
+  _loc = sum_loc / _particles.size();
+  const Vector2f mean_angle_vec = sum_angle_vec / static_cast<float>(_particles.size());
+  _angle = std::atan2(mean_angle_vec.y(), mean_angle_vec.x());
 }
 
 void ParticleFilter::Resample(Particle& p) {

@@ -91,6 +91,9 @@ private:
   Eigen::Vector2f _prev_odom_loc;
   float _prev_odom_angle;
   bool _odom_initialized;
+
+  Eigen::Vector2f _loc;
+  float _angle;
 };
 } // namespace particle_filter
 
