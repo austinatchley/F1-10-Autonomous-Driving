@@ -77,6 +77,8 @@ public:
                               float range_min, float range_max, float angle_min, float angle_max, float angle_increment,
                               std::vector<Eigen::Vector2f>* scan);
 
+  float ray_cast(const Eigen::Vector2f& loc, float angle, float max_range);
+
 private:
   // List of particles being tracked.
   std::vector<Particle> _particles;

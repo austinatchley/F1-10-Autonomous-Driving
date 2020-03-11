@@ -67,25 +67,27 @@ void ParticleFilter::GetParticles(vector<Particle>* particles) const {
 void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float angle, int num_ranges,
                                             float range_min, float range_max, float angle_min,
                                             float angle_max, float angle_increment, vector<Vector2f>* scan_ptr) {
-  /*
-  // Location of the laser on the robot. Assumes the laser is forward-facing.
-  for (uint32_t i = 0; i < num_ranges; ++i) {
-    const float range = ranges[i];
+  *scan_ptr = vector<Vector2f>(num_ranges);
+  vector<Vector2f>& points = *scan_ptr;
 
-    if (range > range_max + navigation::kEpsilon || range < range_min) {
+  for (int i = 0; i < num_ranges; ++i) {
+    const float theta = angle_min + (angle_increment * i);
+    const Vector2f laser_pos = _loc + Vector2f(navigation::LASER_OFFSET * cos(_angle), navigation::LASER_OFFSET * sin(angle));
+    float range = ray_cast(laser_pos, theta, range_max);
+
+    if (range > range_max + geometry::kEpsilon || range < range_min) {
       continue;
     }
 
-    const float theta = angle_min + (angle_increment * i);
     const float x = range * cos(theta);
     const float y = range * sin(theta);
 
-    Vector2f collision = raycast(_mean_pose + navigation::LASER_OFFSET);
-    if (collision == 
-
-    predicted_points.push_back(collision);
+    points.push_back(Vector2f(x, y));
   }
-  */
+}
+
+float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range) {
+  return max_range;
 }
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
