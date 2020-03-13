@@ -175,6 +175,9 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
   _map.Load(map_file);
 }
 
-void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) const {}
+void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) const {
+  *loc = _loc;
+  *angle = _angle;
+}
 
 } // namespace particle_filter
