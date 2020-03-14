@@ -79,8 +79,8 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
       continue;
     }
 
-    const float x = loc.x() + range * cos(theta);
-    const float y = loc.y() + range * sin(theta);
+    const float x = laser_pos.x() + range * cos(theta);
+    const float y = laser_pos.y() + range * sin(theta);
 
     scan_ptr->push_back(Vector2f(x, y));
   }
