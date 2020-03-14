@@ -87,7 +87,19 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
 }
 
 float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range) {
-  return max_range;
+  const Vector2f dir(cos(angle) * max_range, sin(angle) * max_range);
+  static vector<geometry::line2f> lines;
+  _map.GetSceneLines(_loc, max_range, &lines);
+  
+  float sqdist_min = std::numeric_limits<float>().infinity();
+  for (const geometry::line2f& line : lines) {
+    float sqdist;
+    Vector2f _;
+    if (geometry::RayIntersect(loc, dir, line.p0, line.p1, sqdist, _) && sqdist < sqdist_min) {
+      sqdist_min = sqdist;
+    }
+  }
+  return sqrt(sqdist_min);
 }
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
