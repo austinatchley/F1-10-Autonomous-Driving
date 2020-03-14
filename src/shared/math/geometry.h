@@ -333,12 +333,12 @@ template <typename T>
 bool RayIntersect(const Eigen::Matrix<T, 2, 1>& ray_source,
                   const Eigen::Matrix<T, 2, 1>& ray_direction,
                   const Eigen::Matrix<T, 2, 1>& segment_start,
-                  const Eigen::Matrix<T, 2, 1>& segment_end, T* squared_distance,
-                  Eigen::Matrix<T, 2, 1>* intersect_point) {
+                  const Eigen::Matrix<T, 2, 1>& segment_end, T& squared_distance,
+                  Eigen::Matrix<T, 2, 1>& intersect_point) {
   bool intersects = false;
-  *squared_distance = -1;
-  intersect_point->x() = -1;
-  intersect_point->y() = -1;
+  squared_distance = -1;
+  intersect_point.x() = -1;
+  intersect_point.y() = -1;
 
   Eigen::Matrix<T, 2, 1> line_to_source = ray_source - segment_start;
   Eigen::Matrix<T, 2, 1> line_direction = segment_end - segment_start;
@@ -352,8 +352,8 @@ bool RayIntersect(const Eigen::Matrix<T, 2, 1>& ray_source,
 
   if (ray_intersect_param >= T(0) && line_intersect_param >= T(0) && line_intersect_param <= T(1)) {
     intersects = true;
-    *intersect_point = (segment_start + line_intersect_param * line_direction);
-    *squared_distance = ((*intersect_point) - ray_source).squaredNorm();
+    intersect_point = (segment_start + line_intersect_param * line_direction);
+    squared_distance = (intersect_point - ray_source).squaredNorm();
   }
   return intersects;
 }
