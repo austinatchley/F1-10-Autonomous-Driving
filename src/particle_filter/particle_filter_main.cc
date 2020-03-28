@@ -103,9 +103,19 @@ void InitializeMsgs() {
 void PublishParticles() {
   vector<particle_filter::Particle> particles;
   particle_filter_.GetParticles(&particles);
-  for (const particle_filter::Particle& p : particles) {
+  if (particles.size() == 0)
+    return;
+  
+  uint best_particle = 0;
+  for (uint i = 0; i < particles.size(); ++i) {
+    const particle_filter::Particle& p = particles[i];
     DrawParticle(p.loc, p.angle, vis_msg_);
+    if (p.weight > particles[best_particle].weight)
+      best_particle = i;
   }
+  const particle_filter::Particle& p = particles[best_particle];
+  const Vector2f angle_vec(cos(p.angle), sin(p.angle));
+  DrawLine(p.loc, p.loc + angle_vec * 1.0, 0xFF0000, vis_msg_);
 }
 
 void PublishPredictedScan() {
