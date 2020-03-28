@@ -106,16 +106,15 @@ void PublishParticles() {
   if (particles.size() == 0)
     return;
   
-  uint best_particle = 0;
-  for (uint i = 0; i < particles.size(); ++i) {
-    const particle_filter::Particle& p = particles[i];
+  for (const particle_filter::Particle& p : particles) {
     DrawParticle(p.loc, p.angle, vis_msg_);
-    if (p.weight > particles[best_particle].weight)
-      best_particle = i;
   }
-  const particle_filter::Particle& p = particles[best_particle];
-  const Vector2f angle_vec(cos(p.angle), sin(p.angle));
-  DrawLine(p.loc, p.loc + angle_vec * 1.0, 0xFF0000, vis_msg_);
+
+  Vector2f loc;
+  float angle;
+  particle_filter_.GetLocation(&loc, &angle);  
+  const Vector2f angle_vec(cos(angle), sin(angle));
+  DrawLine(loc, loc + angle_vec * 1.0, 0xFF0000, vis_msg_);
 }
 
 void PublishPredictedScan() {

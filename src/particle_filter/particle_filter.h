@@ -63,7 +63,7 @@ public:
   void GetParticles(std::vector<Particle>* particles) const;
 
   // Get robot's current location.
-  void GetLocation(Eigen::Vector2f* loc, float* angle) const;
+  void GetLocation(Eigen::Vector2f* loc, float* angle);
 
   // Update particle weight based on laser.
   void Update(const std::vector<float>& ranges, float range_min, float range_max, float angle_min,
@@ -94,6 +94,7 @@ private:
   float _prev_odom_angle;
   bool _odom_initialized;
 
+  bool _location_dirty = true;
   Eigen::Vector2f _loc;
   float _angle;
 };
