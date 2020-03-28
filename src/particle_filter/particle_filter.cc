@@ -72,7 +72,7 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
 
   for (int i = 0; i < num_ranges; ++i) {
     const float theta = angle + angle_min + (angle_increment * i);
-    const Vector2f laser_pos = _loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
+    const Vector2f laser_pos = loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
     float range = ray_cast(laser_pos, theta, range_max);
 
     if (range > range_max + geometry::kEpsilon || range < range_min) {
@@ -89,7 +89,7 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
 float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range) {
   const Vector2f dir(cos(angle) * max_range, sin(angle) * max_range);
   static vector<geometry::line2f> lines;
-  _map.GetSceneLines(_loc, max_range, &lines);
+  _map.GetSceneLines(loc, max_range, &lines);
   
   float sqdist_min = std::numeric_limits<float>().infinity();
   for (const geometry::line2f& line : lines) {
