@@ -103,9 +103,18 @@ void InitializeMsgs() {
 void PublishParticles() {
   vector<particle_filter::Particle> particles;
   particle_filter_.GetParticles(&particles);
+  if (particles.size() == 0)
+    return;
+  
   for (const particle_filter::Particle& p : particles) {
     DrawParticle(p.loc, p.angle, vis_msg_);
   }
+
+  Vector2f loc;
+  float angle;
+  particle_filter_.GetLocation(&loc, &angle);  
+  const Vector2f angle_vec(cos(angle), sin(angle));
+  DrawLine(loc, loc + angle_vec * 1.0, 0xFF0000, vis_msg_);
 }
 
 void PublishPredictedScan() {

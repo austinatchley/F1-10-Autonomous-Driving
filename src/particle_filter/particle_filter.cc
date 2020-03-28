@@ -72,7 +72,7 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
 
   for (int i = 0; i < num_ranges; ++i) {
     const float theta = angle + angle_min + (angle_increment * i);
-    const Vector2f laser_pos = _loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
+    const Vector2f laser_pos = loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
     float range = ray_cast(laser_pos, theta, range_max);
 
     if (range > range_max + geometry::kEpsilon || range < range_min) {
@@ -89,7 +89,7 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
 float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range) {
   const Vector2f dir(cos(angle) * max_range, sin(angle) * max_range);
   static vector<geometry::line2f> lines;
-  _map.GetSceneLines(_loc, max_range, &lines);
+  _map.GetSceneLines(loc, max_range, &lines);
   
   float sqdist_min = std::numeric_limits<float>().infinity();
   for (const geometry::line2f& line : lines) {
@@ -103,12 +103,37 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
 }
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
-                            float angle_min, float angle_max, Particle* p_ptr) {}
+                            float angle_min, float angle_max, Particle* p_ptr) {
+  constexpr static int stride = 10;
+  constexpr static float sigma2 = 0.05 * 0.05;
+  constexpr static float gamma = 1;
+
+  Particle& particle = *p_ptr;
+  static vector<Vector2f> predicted;
+  predicted.clear();
+
+  const float angle_increment = (angle_max - angle_min) / ranges.size();
+  GetPredictedPointCloud(particle.loc, particle.angle, ranges.size(), range_min, range_max,
+                         angle_min, angle_max, angle_increment, &predicted);
+  
+  float p = 1.f;
+  for (int i = 0; i < ranges.size(); i += stride) {
+    const float dist_predicted = (predicted[i] - particle.loc).norm();
+    const float dist = ranges[i];
+    p *= pow(exp(-0.5 * pow(dist - dist_predicted, 2.0) / sigma2), gamma);
+  }
+  particle.weight = p;
+}
 
 void ParticleFilter::Resample() {}
 
 void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, float range_max,
-                                  float angle_min, float angle_max) {}
+                                  float angle_min, float angle_max) {
+  for (Particle& p : _particles) {
+    Update(ranges, range_min, range_max, angle_min, angle_max, &p);
+  }
+  _location_dirty = true;
+}
 
 void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
   static constexpr double k1 = 0.1;
@@ -132,9 +157,6 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
-  Vector2f sum_loc(0.f, 0.f);
-  Vector2f sum_angle_vec(0.f, 0.f);
-
   for (Particle& p : _particles) {
     const Vector2f prev_loc = p.loc;
 
@@ -149,9 +171,6 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
     if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
       p.needs_resample = true;
-    } else {
-      sum_loc += p.loc;
-      sum_angle_vec += Vector2f(cos(p.angle), sin(p.angle));
     }
   }
 
@@ -166,10 +185,6 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     }
     ++it;
   }
-
-  _loc = sum_loc / _particles.size();
-  const Vector2f mean_angle_vec = sum_angle_vec / static_cast<float>(_particles.size());
-  _angle = std::atan2(mean_angle_vec.y(), mean_angle_vec.x());
 }
 
 void ParticleFilter::Resample(Particle& p) {
@@ -186,7 +201,20 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
   _map.Load(map_file);
 }
 
-void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) const {
+void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
+  if (_particles.size() != 0 && _location_dirty) {
+    uint best_particle = 0;
+    for (uint i = 0; i < _particles.size(); ++i) {
+      const particle_filter::Particle& p = _particles[i];
+      if (p.weight > _particles[best_particle].weight)
+        best_particle = i;
+    }
+    const particle_filter::Particle& p = _particles[best_particle];
+    _loc = p.loc;
+    _angle = p.angle;
+    _location_dirty = false;
+  }
+
   *loc = _loc;
   *angle = _angle;
 }
