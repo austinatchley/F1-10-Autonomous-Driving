@@ -115,7 +115,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   _map.GetPredictedScan(particle.loc, range_min, range_max, angle_min, angle_max, ranges.size(), &predicted);
   
   float p = 1.f;
-  for (int i = 0; i < ranges.size(); i += stride) {
+  for (uint i = 0; i < ranges.size(); i += stride) {
     p *= pow(exp(-0.5 * pow(ranges[i] - predicted[i], 2.0) / sigma2), gamma);
   }
   particle.weight = p;
