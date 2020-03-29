@@ -110,11 +110,11 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
                             float angle_min, float angle_max, Particle* p_ptr) {
   constexpr static int stride = 10;
   constexpr static float sigma2 = 0.05 * 0.05;
-  constexpr static float gamma = 1;
+  constexpr static float gamma = 1; // TODO: tune these constants
   constexpr static float s_min = .01;
-  constexpr static float s_max = range_max - 0.01;
-  constexpr static float d_long = 0.025;
-  constexpr static float d_short = 0.05;
+  constexpr static float s_max = 10;
+  constexpr static float d_long = .025;
+  constexpr static float d_short = .05;
 
   Particle& particle = *p_ptr;
   static vector<float> predicted;
