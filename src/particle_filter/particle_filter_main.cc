@@ -106,11 +106,15 @@ void PublishParticles() {
   if (particles.size() == 0)
     return;
   
+  double max_weight = 0;
   for (const particle_filter::Particle& p : particles) {
     DrawParticle(p.loc, p.angle, vis_msg_);
-    
-    const auto col_map = [](const float f){return static_cast<int>(floor(std::max(0.f, std::min(1.f, f)) * 0xFF));};
-    const uint color = (col_map(p.weight) << 16) | (1 - col_map(p.weight) << 8);
+    max_weight = std::max(max_weight, p.weight);
+  }
+
+  for (const particle_filter::Particle& p : particles) {
+    const auto col_map = [](const double f){return static_cast<int>(floor(std::max(0.0, std::min(1.0, f)) * 0xFF));};
+    const uint color = (col_map(p.weight / max_weight) << 16) | (col_map(1 - p.weight / max_weight) << 8);
     DrawPoint(p.loc, color, vis_msg_);
   }
 
