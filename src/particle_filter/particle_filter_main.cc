@@ -107,17 +107,20 @@ void PublishParticles() {
     return;
   
   double max_weight = 0;
+  // visualize particles
   for (const particle_filter::Particle& p : particles) {
     DrawParticle(p.loc, p.angle, vis_msg_);
-    max_weight = std::max(max_weight, p.weight);
+    max_weight = std::min(max_weight, p.weight);
   }
 
+  // visualize particle weights
   for (const particle_filter::Particle& p : particles) {
     const auto col_map = [](const double f){return static_cast<int>(floor(std::max(0.0, std::min(1.0, f)) * 0xFF));};
-    const uint color = (col_map(p.weight / max_weight) << 16) | (col_map(1 - p.weight / max_weight) << 8);
+    const uint color = (col_map(p.weight / max_weight) << 16) | (col_map(1 - p.weight / max_weight) << 8) | 0x77;
     DrawPoint(p.loc, color, vis_msg_);
   }
 
+  // show best hypothesis
   Vector2f loc;
   float angle;
   particle_filter_.GetLocation(&loc, &angle);  

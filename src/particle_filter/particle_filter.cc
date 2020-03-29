@@ -70,10 +70,14 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
   scan_ptr->clear();
   scan_ptr->reserve(num_ranges);
 
+  static std::vector<float> predicted_ranges;
+  predicted_ranges.clear();
+  _map.GetPredictedScan(loc + Vector2f(cos(angle), sin(angle)) * 0.2, range_min, range_max, angle_min + angle, angle_max + angle, num_ranges, &predicted_ranges);
+
   for (int i = 0; i < num_ranges; ++i) {
     const float theta = angle + angle_min + (angle_increment * i);
     const Vector2f laser_pos = loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
-    float range = ray_cast(laser_pos, theta, range_max);
+    float range = predicted_ranges[i];
 
     if (range > range_max + geometry::kEpsilon || range < range_min) {
       continue;
@@ -112,11 +116,12 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   static vector<float> predicted;
   predicted.clear();
 
-  _map.GetPredictedScan(particle.loc, range_min, range_max, angle_min, angle_max, ranges.size(), &predicted);
+  _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
   
-  float p = 1.f;
+  float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
-    p *= pow(exp(-0.5 * pow(ranges[i] - predicted[i], 2.0) / sigma2), gamma);
+    const double diff = std::max(0.0, std::min(1.0, pow(ranges[i] - predicted[i], 2.0)));
+    p += (-0.5 * diff / sigma2) * gamma;
   }
   particle.weight = p;
 }
