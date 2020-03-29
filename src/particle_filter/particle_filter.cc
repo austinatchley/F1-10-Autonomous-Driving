@@ -111,6 +111,10 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   constexpr static int stride = 10;
   constexpr static float sigma2 = 0.05 * 0.05;
   constexpr static float gamma = 1;
+  constexpr static float s_min = .01;
+  constexpr static float s_max = range_max - 0.01;
+  constexpr static float d_long = 0.025;
+  constexpr static float d_short = 0.05;
 
   Particle& particle = *p_ptr;
   static vector<float> predicted;
@@ -120,7 +124,19 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
-    const double diff = std::max(0.0, std::min(1.0, pow(ranges[i] - predicted[i], 2.0)));
+    double diff = 0.0;
+    if (ranges[i] < s_min || ranges[i] > s_max) {
+        diff = 0.0; // TODO: is this correct? we are comparing logs to a 0
+    } else if (ranges[i] < predicted[i] - d_short) {
+      diff = -1 * pow(d_short - predicted[i], 2.0) / sigma2;
+    } else if (ranges[i] > predicted[i] + d_long) {
+      diff = -1 * pow(d_long - predicted[i], 2.0) / sigma2;
+    } else {
+      diff = -1 * pow(ranges[i] - predicted[i], 2.0) / sigma2;
+    }
+
+    diff = std::max(0.0, std::min(1.0, diff));
+
     p += (-0.5 * diff / sigma2) * gamma;
   }
   particle.weight = p;
