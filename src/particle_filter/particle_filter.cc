@@ -109,18 +109,14 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   constexpr static float gamma = 1;
 
   Particle& particle = *p_ptr;
-  static vector<Vector2f> predicted;
+  static vector<float> predicted;
   predicted.clear();
 
-  const float angle_increment = (angle_max - angle_min) / ranges.size();
-  GetPredictedPointCloud(particle.loc, particle.angle, ranges.size(), range_min, range_max,
-                         angle_min, angle_max, angle_increment, &predicted);
+  _map.GetPredictedScan(particle.loc, range_min, range_max, angle_min, angle_max, ranges.size(), &predicted);
   
   float p = 1.f;
   for (int i = 0; i < ranges.size(); i += stride) {
-    const float dist_predicted = (predicted[i] - particle.loc).norm();
-    const float dist = ranges[i];
-    p *= pow(exp(-0.5 * pow(dist - dist_predicted, 2.0) / sigma2), gamma);
+    p *= pow(exp(-0.5 * pow(ranges[i] - predicted[i], 2.0) / sigma2), gamma);
   }
   particle.weight = p;
 }
