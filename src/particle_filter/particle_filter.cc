@@ -212,7 +212,8 @@ void ParticleFilter::Resample(Particle& p) {
 void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, const float angle) {
   _particles.clear();
   for (int i = 0; i < FLAGS_num_particles; ++i) {
-    _particles.push_back(Particle{loc, angle, 1.0});
+    _particles.push_back(Particle(loc + Vector2f(_rng.Gaussian(0.f, 0.4), _rng.Gaussian(0.f, 0.4)),
+                                  angle + _rng.Gaussian(0.0, M_PI / 8.0), 1.0));
   }
   _odom_initialized = false; // fix for simulator
   _map.Load(map_file);
