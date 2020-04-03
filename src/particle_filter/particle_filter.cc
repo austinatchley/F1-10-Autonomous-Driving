@@ -110,11 +110,13 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
                             float angle_min, float angle_max, Particle* p_ptr) {
   constexpr static int stride = 10;
   constexpr static float sigma2 = 0.05 * 0.05;
-  constexpr static float gamma = 1; // TODO: tune these constants
-  constexpr static float s_min = .01;
-  constexpr static float s_max = 10;
-  constexpr static float d_long = .025;
-  constexpr static float d_short = .05;
+  constexpr static float approx_gamma = 1;
+  constexpr static float d_long = 2;
+  constexpr static float d_short = 2;
+
+  const float gamma = std::max(1.f / ranges.size(), std::min(1.f, approx_gamma));
+  const float s_min = range_min + .005;
+  const float s_max = range_max - 1;
 
   Particle& particle = *p_ptr;
   static vector<float> predicted;
@@ -123,19 +125,22 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
   
   float p = 0.f;
+  // std::cout << "Particle" << std::endl;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
     if (ranges[i] < s_min || ranges[i] > s_max) {
       continue;
-    } else if (ranges[i] < predicted[i] - d_short) {
+    } else if (ranges[i] - predicted[i] < -d_short) {
       diff = pow(d_short - predicted[i], 2.0);
-    } else if (ranges[i] > predicted[i] + d_long) {
+    } else if (ranges[i] - predicted[i] > d_long) {
       diff = pow(d_long - predicted[i], 2.0);
     } else {
       diff = pow(ranges[i] - predicted[i], 2.0);
     }
 
-    p += -(diff / sigma2) * gamma;
+    auto p_log = -(diff / sigma2) * gamma;
+    // std::cout << p_log << "," << ranges[i] << "," << predicted[i] << std::endl;
+    p += p_log;
   }
   particle.weight = p;
 }
