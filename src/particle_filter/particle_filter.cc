@@ -151,7 +151,7 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
 }
 
 void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
-  static constexpr double k1 = 0.1;
+  static constexpr double k1 = 0.15;
   static constexpr double k2 = 0.05;
   static constexpr double k3 = 0.01;
   static constexpr double k4 = 0.05;
