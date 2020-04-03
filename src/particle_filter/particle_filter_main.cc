@@ -91,6 +91,8 @@ VisualizationMsg vis_msg_;
 sensor_msgs::LaserScan last_laser_msg_;
 vector_map::VectorMap map_;
 vector<Vector2f> trajectory_points_;
+Vector2f reference_loc_;
+double reference_angle_;
 
 void InitializeMsgs() {
   std_msgs::Header header;
@@ -124,8 +126,14 @@ void PublishParticles() {
   Vector2f loc;
   float angle;
   particle_filter_.GetLocation(&loc, &angle);  
-  const Vector2f angle_vec(cos(angle), sin(angle));
-  DrawLine(loc, loc + angle_vec * 1.0, 0xFF0000, vis_msg_);
+  DrawLine(loc, loc + Vector2f(cos(angle), sin(angle)), 0xFF0000, vis_msg_);
+  DrawLine(reference_loc_, reference_loc_ + Vector2f(cos(reference_angle_), sin(reference_angle_)), 0x70FFFF, vis_msg_);
+  
+  for (uint i = 0; i < last_laser_msg_.ranges.size(); ++i) {
+    const double laser_range = last_laser_msg_.ranges[i];
+    const double laser_angle = last_laser_msg_.angle_min + i * last_laser_msg_.angle_increment;
+    DrawPoint(loc + Vector2f(cos(angle + laser_angle) * laser_range, sin(angle + laser_angle) * laser_range), 0x70FFFF, vis_msg_);
+  }
 }
 
 void PublishPredictedScan() {
@@ -184,7 +192,6 @@ void LaserCallback(const sensor_msgs::LaserScan& msg) {
   last_laser_msg_ = msg;
   particle_filter_.ObserveLaser(msg.ranges, msg.range_min, msg.range_max, msg.angle_min,
                                 msg.angle_max);
-  PublishVisualization();
 }
 
 void OdometryCallback(const nav_msgs::Odometry& msg) {
@@ -202,7 +209,6 @@ void OdometryCallback(const nav_msgs::Odometry& msg) {
   localization_msg.y = robot_loc.y();
   localization_msg.theta = robot_angle;
   localization_publisher_.publish(localization_msg);
-  PublishVisualization();
 }
 
 void InitCallback(const nav_msgs::Odometry& msg) {
@@ -224,10 +230,17 @@ void InitPoseCallback(const geometry_msgs::PoseWithCovarianceStamped& msg) {
   particle_filter_.Initialize(map, Vector2f(x, y), theta);
 }
 
+void ReferenceCallback(const geometry_msgs::Pose2D& msg) {
+  reference_loc_ = Vector2f(msg.x, msg.y);
+  reference_angle_ = msg.theta;
+}
+
 void ProcessLive(ros::NodeHandle* n) {
   ros::Subscriber initial_pose_sub = n->subscribe(FLAGS_init_topic.c_str(), 1, InitPoseCallback);
   ros::Subscriber laser_sub = n->subscribe(FLAGS_laser_topic.c_str(), 1, LaserCallback);
   ros::Subscriber odom_sub = n->subscribe(FLAGS_odom_topic.c_str(), 1, OdometryCallback);
+  ros::Subscriber reference_sub = n->subscribe("/reference_localization", 1, ReferenceCallback);
+  
   while (ros::ok() && run_) {
     ros::spinOnce();
     PublishVisualization();
