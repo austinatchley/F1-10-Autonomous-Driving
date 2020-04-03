@@ -126,18 +126,16 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
     if (ranges[i] < s_min || ranges[i] > s_max) {
-        diff = 0.0; // TODO: is this correct? we are comparing logs to a 0
+      continue;
     } else if (ranges[i] < predicted[i] - d_short) {
-      diff = -1 * pow(d_short - predicted[i], 2.0) / sigma2;
+      diff = pow(d_short - predicted[i], 2.0);
     } else if (ranges[i] > predicted[i] + d_long) {
-      diff = -1 * pow(d_long - predicted[i], 2.0) / sigma2;
+      diff = pow(d_long - predicted[i], 2.0);
     } else {
-      diff = -1 * pow(ranges[i] - predicted[i], 2.0) / sigma2;
+      diff = pow(ranges[i] - predicted[i], 2.0);
     }
 
-    diff = std::max(0.0, std::min(1.0, diff));
-
-    p += (-0.5 * diff / sigma2) * gamma;
+    p += -(diff / sigma2) * gamma;
   }
   particle.weight = p;
 }
