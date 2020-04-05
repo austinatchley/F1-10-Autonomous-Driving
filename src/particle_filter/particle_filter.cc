@@ -131,9 +131,9 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
     if (ranges[i] < s_min || ranges[i] > s_max) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
-      diff = pow(d_short - predicted[i], 2.0);
+      diff = pow(d_short, 2.0);
     } else if (ranges[i] - predicted[i] > d_long) {
-      diff = pow(d_long - predicted[i], 2.0);
+      diff = pow(d_long, 2.0);
     } else {
       diff = pow(ranges[i] - predicted[i], 2.0);
     }
