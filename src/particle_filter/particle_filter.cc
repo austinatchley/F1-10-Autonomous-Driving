@@ -131,7 +131,6 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
   
   float p = 0.f;
-  // std::cout << "Particle" << std::endl;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
     if (ranges[i] < s_min || ranges[i] > s_max) {
@@ -144,9 +143,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
       diff = pow(ranges[i] - predicted[i], 2.0);
     }
 
-    auto p_log = -(diff / sigma2) * gamma;
-    // std::cout << p_log << "," << ranges[i] << "," << predicted[i] << std::endl;
-    p += p_log;
+    p += -(diff / sigma2) * gamma;
   }
   particle.weight = p;
 }
