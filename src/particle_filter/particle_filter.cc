@@ -55,6 +55,13 @@ DEFINE_double(num_particles, 50, "Number of particles");
 
 namespace particle_filter {
 
+CONFIG_FLOAT(correlation, "correlation");
+CONFIG_FLOAT(sigma, "sigma");
+CONFIG_FLOAT(d_long, "d_long");
+CONFIG_FLOAT(d_short, "d_short");
+CONFIG_FLOAT(s_max_offset, "s_max_offset");
+CONFIG_FLOAT(s_min_offset, "s_min_offset");
+CONFIG_INT(stride, "stride");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
@@ -108,15 +115,14 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
                             float angle_min, float angle_max, Particle* p_ptr) {
-  constexpr static int stride = 10;
-  constexpr static float sigma2 = 0.05 * 0.05;
-  constexpr static float approx_gamma = 1;
-  constexpr static float d_long = 2;
-  constexpr static float d_short = 2;
+  const int stride = CONFIG_stride;
+  const float sigma2 = CONFIG_sigma * CONFIG_sigma;
+  const float d_long = CONFIG_d_long;
+  const float d_short = CONFIG_d_short;
 
-  const float gamma = std::max(1.f / ranges.size(), std::min(1.f, approx_gamma));
-  const float s_min = range_min + .005;
-  const float s_max = range_max - 1;
+  const float gamma = (1.f - CONFIG_correlation) + (CONFIG_correlation / (ranges.size() / stride));
+  const float s_min = range_min + CONFIG_s_min_offset;
+  const float s_max = range_max - CONFIG_s_max_offset;
 
   Particle& particle = *p_ptr;
   static vector<float> predicted;
