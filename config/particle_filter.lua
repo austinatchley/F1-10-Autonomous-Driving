@@ -11,7 +11,7 @@ k5 = 0.05 -- rotation error from translation
 k6 = 0.1  -- rotation error from rotation
 
 correlation = 0.9
-sigma = 0.05
+sigma = 4
 d_long = .75
 d_short = .75
 s_max_offset = 1.0

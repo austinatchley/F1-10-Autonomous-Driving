@@ -155,12 +155,6 @@ void ParticleFilter::Resample() {
     return;
   }
   
-  // Compress particle weights
-  // TODO: Is this correct?
-  for (Particle& p : _particles) {
-    p.weight = (p.weight + 5e4) / 5e3;
-  }
-  
   float w_max = _particles[0].weight;
   for (const Particle& p : _particles) {
     w_max = std::max(static_cast<double>(w_max), p.weight);
