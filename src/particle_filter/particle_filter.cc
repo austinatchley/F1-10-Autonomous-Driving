@@ -56,6 +56,8 @@ CONFIG_FLOAT(k3, "k3");
 CONFIG_FLOAT(k4, "k4");
 CONFIG_FLOAT(k5, "k5");
 CONFIG_FLOAT(k6, "k6");
+CONFIG_FLOAT(k_trans_scale, "k_trans_scale");
+CONFIG_FLOAT(k_rot_scale, "k_rot_scale");
 
 CONFIG_FLOAT(correlation, "correlation");
 CONFIG_FLOAT(sigma, "sigma");
@@ -234,8 +236,8 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     const Vector2f e_x = dir * _rng.Gaussian(0, CONFIG_k1 * len + CONFIG_k2 * abs(da));
     const Vector2f e_y = perp_dir * _rng.Gaussian(0, CONFIG_k3 * len + CONFIG_k4 * abs(da));
 
-    p.loc += (dir * len) + e_x + e_y;
-    p.angle += da + _rng.Gaussian(0, CONFIG_k5 * len + CONFIG_k6 * abs(da));
+    p.loc += (dir * len * CONFIG_k_trans_scale) + e_x + e_y;
+    p.angle += da * CONFIG_k_rot_scale + _rng.Gaussian(0, CONFIG_k5 * len + CONFIG_k6 * abs(da));
 
     if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
       p.needs_resample = true;
