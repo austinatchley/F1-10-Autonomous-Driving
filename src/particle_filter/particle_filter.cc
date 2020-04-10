@@ -48,11 +48,6 @@ using vector_map::VectorMap;
 
 DEFINE_double(num_particles, 50, "Number of particles");
 
-// Fill in the body of these functions and create helpers as needed
-// in order to implement localization using a particle filter.
-
-// Milestone 2 will be implemented here.
-
 namespace particle_filter {
 
 CONFIG_FLOAT(correlation, "correlation");
@@ -148,18 +143,52 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   particle.weight = p;
 }
 
-void ParticleFilter::Resample() {}
+void ParticleFilter::Resample() {
+  if (_particles.size() == 0)
+    return;
+  
+  const float w_max = std::accumulate(_particles.begin(), _particles.end(), _particles[0].weight, [](double w_max, const Particle& p){ return std::max(p.weight, w_max); });
+  // std::cout << "w_max " << w_max << std::endl;
+
+  for (Particle& p : _particles) {
+    p.weight = exp(p.weight - w_max);
+    // std::cout << p.weight << std::endl;
+  }
+  // std::cout << std::endl;
+
+  const uint n = _particles.size();
+  const float W = std::accumulate(_particles.begin(), _particles.end(), 0, [](float sum, const Particle& p){ return p.weight + sum; });
+  const float x = _rng.UniformRandom(0, W);
+  vector<Particle> resampled_particles;
+  // std::cout << "W " << W << std::endl;
+
+  for (uint i = 0; i < n; ++i) {
+    float w = 0;
+    for (const Particle& p : _particles) {
+      w += p.weight;
+      if (w > x + fmod(i * W / n, W)) {
+        // std::cout << "REPLICATED" << std::endl;
+        resampled_particles.emplace_back(p);
+        break;
+      }
+    }
+  }
+  
+  _particles = resampled_particles;  
+}
 
 void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, float range_max,
                                   float angle_min, float angle_max) {
   for (Particle& p : _particles) {
     Update(ranges, range_min, range_max, angle_min, angle_max, &p);
   }
+  Resample();
+
   _location_dirty = true;
 }
 
 void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
-  static constexpr double k1 = 0.15;
+  static constexpr double k1 = 0.30;
   static constexpr double k2 = 0.05;
   static constexpr double k3 = 0.01;
   static constexpr double k4 = 0.05;
