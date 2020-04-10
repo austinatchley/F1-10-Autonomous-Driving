@@ -144,8 +144,10 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
 }
 
 void ParticleFilter::Resample() {
-  if (_particles.size() == 0)
+  if (_particles.size() == 0) {
     return;
+  }
+  
   
   const float w_max = std::accumulate(_particles.begin(), _particles.end(), _particles[0].weight, [](double w_max, const Particle& p){ return std::max(p.weight, w_max); });
   // std::cout << "w_max " << w_max << std::endl;
@@ -166,12 +168,23 @@ void ParticleFilter::Resample() {
     float w = 0;
     for (const Particle& p : _particles) {
       w += p.weight;
-      if (w > x + fmod(i * W / n, W)) {
+
+      // Low-variability resampling. Choose one rand number and other samples are at equidistant locations
+      if (w > fmod(x + i * W / n, W)) {
         // std::cout << "REPLICATED" << std::endl;
         resampled_particles.emplace_back(p);
         break;
       }
     }
+  }
+
+  // This loop corrects any errors that result in a loss of overall particle population
+  // We _should_ always have the same number of particles in these vectors, but this adds safety
+  while (resampled_particles.size() < _particles.size()) {
+    Particle p(Vector2f(), 0.f, 0.0); // weight will be adjusted on next pass of Update
+    Resample(p); // set location and angle to our best guess + rand sample from loc and angle distributions
+
+    resampled_particles.push_back(p);
   }
   
   _particles = resampled_particles;  
