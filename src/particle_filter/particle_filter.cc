@@ -50,6 +50,13 @@ DEFINE_double(num_particles, 50, "Number of particles");
 
 namespace particle_filter {
 
+CONFIG_FLOAT(k1, "k1");
+CONFIG_FLOAT(k2, "k2");
+CONFIG_FLOAT(k3, "k3");
+CONFIG_FLOAT(k4, "k4");
+CONFIG_FLOAT(k5, "k5");
+CONFIG_FLOAT(k6, "k6");
+
 CONFIG_FLOAT(correlation, "correlation");
 CONFIG_FLOAT(sigma, "sigma");
 CONFIG_FLOAT(d_long, "d_long");
@@ -210,13 +217,6 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
 }
 
 void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_angle) {
-  static constexpr double k1 = 0.30;
-  static constexpr double k2 = 0.05;
-  static constexpr double k3 = 0.01;
-  static constexpr double k4 = 0.05;
-  static constexpr double k5 = 0.05;
-  static constexpr double k6 = 0.1; 
-
   if (not _odom_initialized) {
     _prev_odom_loc = odom_loc;
     _prev_odom_angle = odom_angle;
@@ -237,11 +237,11 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
     const Vector2f dir(cos(p.angle), sin(p.angle));
     const Vector2f perp_dir(cos(p.angle + M_PI / 2.f), sin(p.angle + M_PI / 2.f));
 
-    const Vector2f e_x = dir * _rng.Gaussian(0, k1 * len + k2 * abs(da));
-    const Vector2f e_y = perp_dir * _rng.Gaussian(0, k3 * len + k4 * abs(da));
+    const Vector2f e_x = dir * _rng.Gaussian(0, CONFIG_k1 * len + CONFIG_k2 * abs(da));
+    const Vector2f e_y = perp_dir * _rng.Gaussian(0, CONFIG_k3 * len + CONFIG_k4 * abs(da));
 
     p.loc += (dir * len) + e_x + e_y;
-    p.angle += da + _rng.Gaussian(0, k5 * len + k6 * abs(da));
+    p.angle += da + _rng.Gaussian(0, CONFIG_k5 * len + CONFIG_k6 * abs(da));
 
     if (_map.Intersects(p.loc + dir * navigation::CAR_L, prev_loc)) {
       p.needs_resample = true;
