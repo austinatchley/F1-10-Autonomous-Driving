@@ -108,17 +108,21 @@ void PublishParticles() {
   if (particles.size() == 0)
     return;
   
-  double max_weight = 0;
+  double min_weight = particles[0].weight;
+  double max_weight = particles[0].weight;
   // visualize particles
   for (const particle_filter::Particle& p : particles) {
     DrawParticle(p.loc, p.angle, vis_msg_);
-    max_weight = std::min(max_weight, p.weight);
+    min_weight = std::min(min_weight, p.weight);
+    max_weight = std::max(max_weight, p.weight);
   }
 
   // visualize particle weights
+  const auto col_map = [&min_weight, &max_weight](const double w){
+    return static_cast<int>(floor(std::max(0.0, std::min(1.0, (w - min_weight) / (max_weight - min_weight))) * 0xFF));
+  };
   for (const particle_filter::Particle& p : particles) {
-    const auto col_map = [](const double f){return static_cast<int>(floor(std::max(0.0, std::min(1.0, f)) * 0xFF));};
-    const uint color = (col_map(p.weight / max_weight) << 16) | (col_map(1 - p.weight / max_weight) << 8) | 0x77;
+    const uint color = ((0xFF - col_map(p.weight)) << 16) | (col_map(p.weight) << 8) | 0x77;
     DrawPoint(p.loc, color, vis_msg_);
   }
 
