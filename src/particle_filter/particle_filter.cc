@@ -201,9 +201,10 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   _prev_odom_angle = odom_angle;
 
   for (auto it = _particles.begin(); it != _particles.end();) {
-    const Particle& p = *it;
+    Particle& p = *it;
     if (p.needs_resample) {
-      it = _particles.erase(it);
+      Resample(p);
+      p.needs_resample = false;
       continue;
     }
     ++it;
@@ -211,8 +212,14 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 }
 
 void ParticleFilter::Resample(Particle& p) {
-  p.loc = _prev_odom_loc;
-  p.angle = _prev_odom_angle;
+  constexpr float pos_x_sigma = 0.1;
+  constexpr float pos_y_sigma = 0.1;
+  constexpr float angle_sigma = M_PI / 16.0;
+
+  GetLocation(&p.loc, &p.angle);
+
+  p.loc += Vector2f(_rng.Gaussian(0.f, pos_x_sigma), _rng.Gaussian(0.f, pos_y_sigma));
+  p.angle += _rng.Gaussian(0.0, angle_sigma);
 }
 
 void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, const float angle) {
@@ -221,7 +228,7 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
   constexpr float angle_sigma = M_PI / 8.0;
   _particles.clear();
   for (int i = 0; i < FLAGS_num_particles; ++i) {
-    _particles.push_back(Particle(loc + Vector2f(_rng.Gaussian(0.f, pos_x_sigma), _rng.Gaussian(0.f, pos_x_sigma)),
+    _particles.push_back(Particle(loc + Vector2f(_rng.Gaussian(0.f, pos_x_sigma), _rng.Gaussian(0.f, pos_y_sigma)),
                                   angle + _rng.Gaussian(0.0, angle_sigma), 1.0));
   }
   _odom_initialized = false; // fix for simulator
