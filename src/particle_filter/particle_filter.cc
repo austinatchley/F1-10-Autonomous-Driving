@@ -148,21 +148,30 @@ void ParticleFilter::Resample() {
     return;
   }
   
+  // Compress particle weights
+  // TODO: Is this correct?
+  for (Particle& p : _particles) {
+    p.weight = (p.weight + 5e4) / 5e3;
+  }
   
-  const float w_max = std::accumulate(_particles.begin(), _particles.end(), _particles[0].weight, [](double w_max, const Particle& p){ return std::max(p.weight, w_max); });
+  float w_max = _particles[0].weight;
+  for (const Particle& p : _particles) {
+    w_max = std::max(static_cast<double>(w_max), p.weight);
+  }
   // std::cout << "w_max " << w_max << std::endl;
 
   for (Particle& p : _particles) {
     p.weight = exp(p.weight - w_max);
     // std::cout << p.weight << std::endl;
   }
-  // std::cout << std::endl;
 
   const uint n = _particles.size();
-  const float W = std::accumulate(_particles.begin(), _particles.end(), 0, [](float sum, const Particle& p){ return p.weight + sum; });
+  float W = 0.f;
+  for (const Particle& p : _particles) { W += p.weight; }
+
   const float x = _rng.UniformRandom(0, W);
   vector<Particle> resampled_particles;
-  // std::cout << "W " << W << std::endl;
+  // std::cout << "W " << W << std::endl << std::endl;
 
   for (uint i = 0; i < n; ++i) {
     float w = 0;
