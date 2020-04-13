@@ -23,3 +23,6 @@ d_short = .75
 s_max_offset = 1.0
 s_min_offset = 0.05
 stride = 10
+
+-- resample params
+resample_rate = 1

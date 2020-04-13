@@ -66,6 +66,7 @@ CONFIG_FLOAT(d_short, "d_short");
 CONFIG_FLOAT(s_max_offset, "s_max_offset");
 CONFIG_FLOAT(s_min_offset, "s_min_offset");
 CONFIG_INT(stride, "stride");
+CONFIG_INT(resample_rate, "resample_rate");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
@@ -133,7 +134,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   predicted.clear();
 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
-  
+
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
@@ -204,10 +205,15 @@ void ParticleFilter::Resample() {
 
 void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, float range_max,
                                   float angle_min, float angle_max) {
+  static uint frame_counter = 0;
+
   for (Particle& p : _particles) {
     Update(ranges, range_min, range_max, angle_min, angle_max, &p);
   }
-  Resample();
+  ++frame_counter;
+  if (frame_counter % CONFIG_resample_rate == 0) {
+    Resample();
+  }
 
   _location_dirty = true;
 }
