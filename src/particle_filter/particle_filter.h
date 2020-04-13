@@ -65,6 +65,8 @@ public:
   // Get robot's current location.
   void GetLocation(Eigen::Vector2f* loc, float* angle);
 
+  void GetSmoothedLocation(Eigen::Vector2f* loc, float* angle);
+
   // Update particle weight based on laser.
   void Update(const std::vector<float>& ranges, float range_min, float range_max, float angle_min,
               float angle_max, Particle* p);
@@ -98,8 +100,8 @@ private:
   bool _odom_initialized;
 
   bool _location_dirty = true;
-  Eigen::Vector2f _loc;
-  float _angle;
+  Eigen::Vector2f _loc, _loc_smoothed;
+  float _angle, _angle_smoothed;
 };
 } // namespace particle_filter
 

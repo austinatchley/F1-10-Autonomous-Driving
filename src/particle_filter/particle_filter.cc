@@ -52,6 +52,10 @@ DEFINE_double(num_particles, 50, "Number of particles");
 
 namespace particle_filter {
 
+CONFIG_BOOL(flag_location_smoothing, "flag_location_smoothing");
+CONFIG_BOOL(flag_laser_smoothing, "flag_laser_smoothing");
+CONFIG_BOOL(flag_variance_thresh, "flag_variance_thresh");
+
 CONFIG_FLOAT(k1, "k1");
 CONFIG_FLOAT(k2, "k2");
 CONFIG_FLOAT(k3, "k3");
@@ -71,6 +75,7 @@ CONFIG_INT(stride, "stride");
 
 CONFIG_INT(resample_rate, "resample_rate");
 CONFIG_FLOAT(var_threshold, "var_threshold");
+CONFIG_FLOAT(location_smoothing, "location_smoothing");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
@@ -123,9 +128,13 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
 }
 
 void ParticleFilter::ConvolveGaussian(vector<float>& values) {
+  if (!CONFIG_flag_laser_smoothing)
+    return;
+
   constexpr static array<float, 7> kernel {0.071303, 0.131514, 0.189879, 0.214607, 0.189879, 0.131514, 0.071303};  
   static vector<float> src;
   src = values;
+  
   for (ulong i = 0; i < values.size(); ++i) {
     values[i] = 0;
     for (ulong j = 0; j < kernel.size(); ++j) {
@@ -159,11 +168,11 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
     if (ranges[i] < s_min || ranges[i] > s_max) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
-      diff = pow(d_short, 2.0);
+      diff = pow(d_short, 2);
     } else if (ranges[i] - predicted[i] > d_long) {
-      diff = pow(d_long, 2.0);
+      diff = pow(d_long, 2);
     } else {
-      diff = pow(ranges[i] - predicted[i], 2.0);
+      diff = pow(abs(ranges[i] - predicted[i]), 2);
     }
 
     p += -(diff / sigma2) * gamma;
@@ -332,11 +341,27 @@ void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
     const particle_filter::Particle& p = _particles[best_particle];
     _loc = p.loc;
     _angle = p.angle;
+
+    // smoothed location
+    _loc_smoothed = p.loc * (1 - CONFIG_location_smoothing) + _loc_smoothed * CONFIG_location_smoothing;
+    const Vector2f new_angle_vec(
+      cos(_angle_smoothed) * CONFIG_location_smoothing + cos(p.angle) * (1 - CONFIG_location_smoothing), 
+      sin(_angle_smoothed) * CONFIG_location_smoothing + sin(p.angle) * (1 - CONFIG_location_smoothing)
+    );
+    _angle_smoothed = atan2(new_angle_vec.y(), new_angle_vec.x());
     _location_dirty = false;
   }
 
   *loc = _loc;
   *angle = _angle;
+}
+
+void ParticleFilter::GetSmoothedLocation(Eigen::Vector2f* loc, float* angle) {
+  GetLocation(loc, angle);
+  if (CONFIG_flag_location_smoothing) {
+    *loc = _loc_smoothed;
+    *angle = _angle_smoothed;
+  }
 }
 
 } // namespace particle_filter

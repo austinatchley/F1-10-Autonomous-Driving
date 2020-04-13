@@ -129,7 +129,7 @@ void PublishParticles() {
   // show best hypothesis
   Vector2f loc;
   float angle;
-  particle_filter_.GetLocation(&loc, &angle);  
+  particle_filter_.GetSmoothedLocation(&loc, &angle);  
   DrawLine(loc, loc + Vector2f(cos(angle), sin(angle)), 0xFF0000, vis_msg_);
   DrawLine(reference_loc_, reference_loc_ + Vector2f(cos(reference_angle_), sin(reference_angle_)), 0x70FFFF, vis_msg_);
   
@@ -147,7 +147,7 @@ void PublishPredictedScan() {
   const uint32_t kColor = 0xd67d00;
   Vector2f robot_loc(0, 0);
   float robot_angle(0);
-  particle_filter_.GetLocation(&robot_loc, &robot_angle);
+  particle_filter_.GetSmoothedLocation(&robot_loc, &robot_angle);
   vector<Vector2f> predicted_scan;
   particle_filter_.GetPredictedPointCloud(robot_loc, robot_angle, last_laser_msg_.ranges.size(),
                                           last_laser_msg_.range_min, last_laser_msg_.range_max,
@@ -162,7 +162,7 @@ void PublishTrajectory() {
   const uint32_t kColor = 0xadadad;
   Vector2f robot_loc(0, 0);
   float robot_angle(0);
-  particle_filter_.GetLocation(&robot_loc, &robot_angle);
+  particle_filter_.GetSmoothedLocation(&robot_loc, &robot_angle);
   static Vector2f last_loc_(0, 0);
   if (!trajectory_points_.empty() && (last_loc_ - robot_loc).squaredNorm() > Sq(1.5)) {
     trajectory_points_.clear();
@@ -210,7 +210,7 @@ void OdometryCallback(const nav_msgs::Odometry& msg) {
   particle_filter_.ObserveOdometry(odom_loc, odom_angle);
   Vector2f robot_loc(0, 0);
   float robot_angle(0);
-  particle_filter_.GetLocation(&robot_loc, &robot_angle);
+  particle_filter_.GetSmoothedLocation(&robot_loc, &robot_angle);
   geometry_msgs::Pose2D localization_msg;
   localization_msg.x = robot_loc.x();
   localization_msg.y = robot_loc.y();
