@@ -27,4 +27,4 @@ stride = 10
 -- resample params
 resample_rate = 10
 -- var_threshold = 0.025
-var_threshold = 5
+var_threshold = .025

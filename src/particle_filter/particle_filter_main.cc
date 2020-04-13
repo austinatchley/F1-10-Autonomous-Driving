@@ -133,8 +133,11 @@ void PublishParticles() {
   DrawLine(loc, loc + Vector2f(cos(angle), sin(angle)), 0xFF0000, vis_msg_);
   DrawLine(reference_loc_, reference_loc_ + Vector2f(cos(reference_angle_), sin(reference_angle_)), 0x70FFFF, vis_msg_);
   
+  static vector<float> laser_ranges;
+  laser_ranges = last_laser_msg_.ranges;
+  particle_filter::ParticleFilter::ConvolveGaussian(laser_ranges);
   for (uint i = 0; i < last_laser_msg_.ranges.size(); ++i) {
-    const double laser_range = last_laser_msg_.ranges[i];
+    const double laser_range = laser_ranges[i];
     const double laser_angle = last_laser_msg_.angle_min + i * last_laser_msg_.angle_increment;
     DrawPoint(loc + Vector2f(cos(angle + laser_angle) * laser_range, sin(angle + laser_angle) * laser_range), 0x70FFFF, vis_msg_);
   }

@@ -123,15 +123,16 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
 }
 
 void ParticleFilter::ConvolveGaussian(vector<float>& values) {
-  constexpr static array<float, 5> kernel {0.06136,	0.24477,	0.38774,	0.24477,	0.06136};  
+  constexpr static array<float, 7> kernel {0.071303, 0.131514, 0.189879, 0.214607, 0.189879, 0.131514, 0.071303};  
   static vector<float> src;
   src = values;
-  for (int i = 0; i < values.size(); ++i) {
-    for (int j = 0; j < kernel.size(); ++j) {
-      
+  for (ulong i = 0; i < values.size(); ++i) {
+    values[i] = 0;
+    for (ulong j = 0; j < kernel.size(); ++j) {
+      const uint src_index = std::min(src.size(), std::max(0ul, i + j - kernel.size() / 2ul));
+      values[i] += src[src_index] * kernel[j];
     }
   }
-  return values;
 }
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
@@ -150,7 +151,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   predicted.clear();
 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
-
+  ConvolveGaussian(predicted);
 
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
@@ -224,9 +225,13 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
                                   float angle_min, float angle_max) {
   static uint frame_counter = 0;
 
+  static vector<float> ranges_smoothed;
+  ranges_smoothed = ranges;
+  ConvolveGaussian(ranges_smoothed);
+
   double mean_weight = 0;
   for (Particle& p : _particles) {
-    Update(ranges, range_min, range_max, angle_min, angle_max, &p);
+    Update(ranges_smoothed, range_min, range_max, angle_min, angle_max, &p);
     mean_weight += p.weight;
   }
   mean_weight /= _particles.size();
