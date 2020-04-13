@@ -17,7 +17,7 @@ k_rot_scale   = 1.20 -- tangent rotation scale
 
 -- observation likelihood params
 correlation = 0.9
-sigma = 2
+sigma = 1.5
 d_long = .75
 d_short = .75
 s_max_offset = 1.0
@@ -25,4 +25,6 @@ s_min_offset = 0.05
 stride = 10
 
 -- resample params
-resample_rate = 1
+resample_rate = 10
+-- var_threshold = 0.025
+var_threshold = 5

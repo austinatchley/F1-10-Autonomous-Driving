@@ -27,6 +27,7 @@
 #include "shared/math/line2d.h"
 #include "shared/math/math_util.h"
 #include "shared/util/timer.h"
+#include <array>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -43,6 +44,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::swap;
+using std::array;
 using std::vector;
 using vector_map::VectorMap;
 
@@ -66,7 +68,9 @@ CONFIG_FLOAT(d_short, "d_short");
 CONFIG_FLOAT(s_max_offset, "s_max_offset");
 CONFIG_FLOAT(s_min_offset, "s_min_offset");
 CONFIG_INT(stride, "stride");
+
 CONFIG_INT(resample_rate, "resample_rate");
+CONFIG_FLOAT(var_threshold, "var_threshold");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
@@ -118,6 +122,18 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
   return sqrt(sqdist_min);
 }
 
+void ParticleFilter::ConvolveGaussian(vector<float>& values) {
+  constexpr static array<float, 5> kernel {0.06136,	0.24477,	0.38774,	0.24477,	0.06136};  
+  static vector<float> src;
+  src = values;
+  for (int i = 0; i < values.size(); ++i) {
+    for (int j = 0; j < kernel.size(); ++j) {
+      
+    }
+  }
+  return values;
+}
+
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
                             float angle_min, float angle_max, Particle* p_ptr) {
   const int stride = CONFIG_stride;
@@ -134,6 +150,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   predicted.clear();
 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
+
 
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
@@ -207,11 +224,22 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
                                   float angle_min, float angle_max) {
   static uint frame_counter = 0;
 
+  double mean_weight = 0;
   for (Particle& p : _particles) {
     Update(ranges, range_min, range_max, angle_min, angle_max, &p);
+    mean_weight += p.weight;
   }
+  mean_weight /= _particles.size();
+
+  double var = 0.f;
+  for (Particle& p : _particles) {
+    var += pow(p.weight - mean_weight, 2.0);
+  }
+  var = var / _particles.size();
+  std::cout << var << std::endl;
+  
   ++frame_counter;
-  if (frame_counter % CONFIG_resample_rate == 0) {
+  if (frame_counter % CONFIG_resample_rate == 0 || var > CONFIG_var_threshold) {
     Resample();
   }
 

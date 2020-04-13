@@ -79,6 +79,9 @@ public:
 
   float ray_cast(const Eigen::Vector2f& loc, float angle, float max_range);
 
+  // Convolve a vector of floats using a kernel of the given size
+  void ConvolveGaussian(std::vector<float>& values, uint kernel_size);
+
 private:
   // List of particles being tracked.
   std::vector<Particle> _particles;
