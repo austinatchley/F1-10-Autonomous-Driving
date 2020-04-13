@@ -25,6 +25,5 @@ s_min_offset = 0.05
 stride = 10
 
 -- resample params
-resample_rate = 10
--- var_threshold = 0.025
+resample_rate = 20
 var_threshold = .025
