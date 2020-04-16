@@ -5,9 +5,11 @@ init_r = 0
 
 extra_features = true
 
-flag_location_smoothing = extra_features
+flag_location_smoothing = false
 flag_laser_smoothing = false
 flag_variance_thresh = extra_features
+flag_s_min = true
+flag_dist_update = true
 
 -- particle distribution params
 k1 = 0.70 -- tangent translation error from translation 

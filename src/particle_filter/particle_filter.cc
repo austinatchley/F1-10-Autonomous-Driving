@@ -55,8 +55,8 @@ namespace particle_filter {
 CONFIG_BOOL(flag_location_smoothing, "flag_location_smoothing");
 CONFIG_BOOL(flag_laser_smoothing, "flag_laser_smoothing");
 CONFIG_BOOL(flag_variance_thresh, "flag_variance_thresh");
-CONFIG_BOOL(flag_experimental_s_min, "flag_experimental_s_min");
-CONFIG_BOOL(flag_experimental_dist_update, "flag_experimental_dist_update");
+CONFIG_BOOL(flag_s_min, "flag_s_min");
+CONFIG_BOOL(flag_dist_update, "flag_dist_update");
 
 CONFIG_FLOAT(k1, "k1");
 CONFIG_FLOAT(k2, "k2");
@@ -180,7 +180,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
     double diff = 0.0;
     if (ranges[i] < range_min || ranges[i] > range_max) {
       continue;
-    } else if (CONFIG_flag_experimental_s_min && ranges[i] - predicted[i] < s_min) {
+    } else if (CONFIG_flag_s_min && ranges[i] - predicted[i] < s_min) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
       // There's something unexpected closer than the wall
@@ -253,7 +253,7 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
                                   float angle_min, float angle_max) {
   static uint frame_counter = 0;
 
-  if (CONFIG_flag_experimental_dist_update && _dist_since_update < CONFIG_update_dist) {
+  if (CONFIG_flag_dist_update && _dist_since_update < CONFIG_update_dist) {
     return;
   }
 
