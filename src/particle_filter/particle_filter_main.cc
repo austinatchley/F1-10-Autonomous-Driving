@@ -105,9 +105,8 @@ void InitializeMsgs() {
 void PublishParticles() {
   vector<particle_filter::Particle> particles;
   particle_filter_.GetParticles(&particles);
-  if (particles.size() == 0)
-    return;
-  
+  if (particles.size() == 0) return;
+
   double min_weight = particles[0].weight;
   double max_weight = particles[0].weight;
   // visualize particles
@@ -118,8 +117,9 @@ void PublishParticles() {
   }
 
   // visualize particle weights
-  const auto col_map = [&min_weight, &max_weight](const double w){
-    return static_cast<int>(floor(std::max(0.0, std::min(1.0, (w - min_weight) / (max_weight - min_weight))) * 0xFF));
+  const auto col_map = [&min_weight, &max_weight](const double w) {
+    return static_cast<int>(
+        floor(std::max(0.0, std::min(1.0, (w - min_weight) / (max_weight - min_weight))) * 0xFF));
   };
   for (const particle_filter::Particle& p : particles) {
     const uint color = ((0xFF - col_map(p.weight)) << 16) | (col_map(p.weight) << 8) | 0x77;
@@ -129,17 +129,20 @@ void PublishParticles() {
   // show best hypothesis
   Vector2f loc;
   float angle;
-  particle_filter_.GetSmoothedLocation(&loc, &angle);  
+  particle_filter_.GetSmoothedLocation(&loc, &angle);
   DrawLine(loc, loc + Vector2f(cos(angle), sin(angle)), 0xFF0000, vis_msg_);
-  DrawLine(reference_loc_, reference_loc_ + Vector2f(cos(reference_angle_), sin(reference_angle_)), 0x70FFFF, vis_msg_);
-  
+  DrawLine(reference_loc_, reference_loc_ + Vector2f(cos(reference_angle_), sin(reference_angle_)),
+           0x70FFFF, vis_msg_);
+
   static vector<float> laser_ranges;
   laser_ranges = last_laser_msg_.ranges;
   particle_filter::ParticleFilter::ConvolveGaussian(laser_ranges);
   for (uint i = 0; i < last_laser_msg_.ranges.size(); ++i) {
     const double laser_range = laser_ranges[i];
     const double laser_angle = last_laser_msg_.angle_min + i * last_laser_msg_.angle_increment;
-    DrawPoint(loc + Vector2f(cos(angle + laser_angle) * laser_range, sin(angle + laser_angle) * laser_range), 0x70FFFF, vis_msg_);
+    DrawPoint(loc + Vector2f(cos(angle + laser_angle) * laser_range,
+                             sin(angle + laser_angle) * laser_range),
+              0x70FFFF, vis_msg_);
   }
 }
 
@@ -151,8 +154,8 @@ void PublishPredictedScan() {
   vector<Vector2f> predicted_scan;
   particle_filter_.GetPredictedPointCloud(robot_loc, robot_angle, last_laser_msg_.ranges.size(),
                                           last_laser_msg_.range_min, last_laser_msg_.range_max,
-                                          last_laser_msg_.angle_min, last_laser_msg_.angle_max, last_laser_msg_.angle_increment,
-                                          &predicted_scan);
+                                          last_laser_msg_.angle_min, last_laser_msg_.angle_max,
+                                          last_laser_msg_.angle_increment, &predicted_scan);
   for (const Vector2f& p : predicted_scan) {
     DrawPoint(p, kColor, vis_msg_);
   }
@@ -247,7 +250,7 @@ void ProcessLive(ros::NodeHandle* n) {
   ros::Subscriber laser_sub = n->subscribe(FLAGS_laser_topic.c_str(), 1, LaserCallback);
   ros::Subscriber odom_sub = n->subscribe(FLAGS_odom_topic.c_str(), 1, OdometryCallback);
   ros::Subscriber reference_sub = n->subscribe("/reference_localization", 1, ReferenceCallback);
-  
+
   while (ros::ok() && run_) {
     ros::spinOnce();
     PublishVisualization();

@@ -27,24 +27,24 @@
 #include "shared/math/line2d.h"
 #include "shared/math/math_util.h"
 #include "shared/util/timer.h"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 
 #include "config_reader/config_reader.h"
-#include "particle_filter.h"
 #include "navigation/navigation.h"
+#include "particle_filter.h"
 
 #include "vector_map/vector_map.h"
 
 using Eigen::Vector2f;
 using Eigen::Vector2i;
+using std::array;
 using std::cout;
 using std::endl;
 using std::string;
 using std::swap;
-using std::array;
 using std::vector;
 using vector_map::VectorMap;
 
@@ -87,17 +87,20 @@ void ParticleFilter::GetParticles(vector<Particle>* particles) const {
 
 void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float angle, int num_ranges,
                                             float range_min, float range_max, float angle_min,
-                                            float angle_max, float angle_increment, vector<Vector2f>* scan_ptr) {
+                                            float angle_max, float angle_increment,
+                                            vector<Vector2f>* scan_ptr) {
   scan_ptr->clear();
   scan_ptr->reserve(num_ranges);
 
   static std::vector<float> predicted_ranges;
   predicted_ranges.clear();
-  _map.GetPredictedScan(loc + Vector2f(cos(angle), sin(angle)) * 0.2, range_min, range_max, angle_min + angle, angle_max + angle, num_ranges, &predicted_ranges);
+  _map.GetPredictedScan(loc + Vector2f(cos(angle), sin(angle)) * 0.2, range_min, range_max,
+                        angle_min + angle, angle_max + angle, num_ranges, &predicted_ranges);
 
   for (int i = 0; i < num_ranges; ++i) {
     const float theta = angle + angle_min + (angle_increment * i);
-    const Vector2f laser_pos = loc + Vector2f(navigation::LASER_OFFSET * cos(angle), navigation::LASER_OFFSET * sin(angle));
+    const Vector2f laser_pos = loc + Vector2f(navigation::LASER_OFFSET * cos(angle),
+                                              navigation::LASER_OFFSET * sin(angle));
     float range = predicted_ranges[i];
 
     if (range > range_max + geometry::kEpsilon || range < range_min) {
@@ -116,7 +119,7 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
   const Vector2f dir(cos(angle) * max_range, sin(angle) * max_range);
   static vector<geometry::line2f> lines;
   _map.GetSceneLines(loc, max_range, &lines);
-  
+
   float sqdist_min = std::numeric_limits<float>().infinity();
   for (const geometry::line2f& line : lines) {
     float sqdist;
@@ -133,10 +136,11 @@ void ParticleFilter::ConvolveGaussian(vector<float>& values) {
     return;
   }
 
-  constexpr static array<float, 7> kernel {0.071303, 0.131514, 0.189879, 0.214607, 0.189879, 0.131514, 0.071303};  
+  constexpr static array<float, 7> kernel{0.071303, 0.131514, 0.189879, 0.214607,
+                                          0.189879, 0.131514, 0.071303};
   static vector<float> src;
   src = values;
-  
+
   for (ulong i = 0; i < values.size(); ++i) {
     values[i] = 0;
     for (ulong j = 0; j < kernel.size(); ++j) {
@@ -148,7 +152,8 @@ void ParticleFilter::ConvolveGaussian(vector<float>& values) {
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
                             float angle_min, float angle_max, Particle* p_ptr) {
-  const int stride = CONFIG_stride; // These values are set in the config file (config/particle_filter.lua)
+  const int stride =
+      CONFIG_stride; // These values are set in the config file (config/particle_filter.lua)
   const float sigma2 = CONFIG_sigma * CONFIG_sigma;
   const float d_long = CONFIG_d_long;
   const float d_short = CONFIG_d_short;
@@ -161,7 +166,9 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   static vector<float> predicted;
   predicted.clear();
 
-  _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
+  _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2,
+                        range_min, range_max, angle_min + particle.angle,
+                        angle_max + particle.angle, ranges.size(), &predicted);
   ConvolveGaussian(predicted);
 
   // Robust observation likelihood model
@@ -189,7 +196,7 @@ void ParticleFilter::Resample() {
   if (_particles.size() == 0) {
     return;
   }
-  
+
   // Find max weight
   float w_max = _particles[0].weight;
   for (const Particle& p : _particles) {
@@ -203,7 +210,9 @@ void ParticleFilter::Resample() {
 
   const uint n = _particles.size();
   float W = 0.f;
-  for (const Particle& p : _particles) { W += p.weight; }
+  for (const Particle& p : _particles) {
+    W += p.weight;
+  }
 
   const float x = _rng.UniformRandom(0, W);
   vector<Particle> resampled_particles;
@@ -213,7 +222,8 @@ void ParticleFilter::Resample() {
     for (const Particle& p : _particles) {
       w += p.weight;
 
-      // Low-variance resampling. Choose one rand number and other samples are at equidistant locations
+      // Low-variance resampling. Choose one rand number and other samples are at equidistant
+      // locations
       if (w > fmod(x + i * W / n, W)) {
         resampled_particles.emplace_back(p);
         break;
@@ -225,12 +235,13 @@ void ParticleFilter::Resample() {
   // We _should_ always have the same number of particles in these vectors, but this adds safety
   while (resampled_particles.size() < _particles.size()) {
     Particle p(Vector2f(), 0.f, 0.0); // weight will be adjusted on next pass of Update
-    Resample(p); // set location and angle to our best guess + rand sample from loc and angle distributions
+    Resample(p); // set location and angle to our best guess + rand sample from loc and angle
+                 // distributions
 
     resampled_particles.push_back(p);
   }
-  
-  _particles = resampled_particles;  
+
+  _particles = resampled_particles;
 }
 
 void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, float range_max,
@@ -253,7 +264,7 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
     var += pow(p.weight - mean_weight, 2.0);
   }
   var = var / _particles.size();
-  
+
   ++frame_counter;
 
   // If we are on a "resample frame" or our variance is above the threshold, resample
@@ -330,8 +341,9 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
   constexpr float angle_sigma = M_PI / 8.0;
   _particles.clear();
   for (int i = 0; i < FLAGS_num_particles; ++i) {
-    _particles.push_back(Particle(loc + Vector2f(_rng.Gaussian(0.f, pos_x_sigma), _rng.Gaussian(0.f, pos_y_sigma)),
-                                  angle + _rng.Gaussian(0.0, angle_sigma), 1.0));
+    _particles.push_back(
+        Particle(loc + Vector2f(_rng.Gaussian(0.f, pos_x_sigma), _rng.Gaussian(0.f, pos_y_sigma)),
+                 angle + _rng.Gaussian(0.0, angle_sigma), 1.0));
   }
   _odom_initialized = false; // fix for simulator
   _map.Load(map_file);
@@ -343,7 +355,7 @@ void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
     *angle = _angle;
     return;
   }
-  
+
   // Location is dirty. Let's recompute it here
   uint best_particle = 0;
   for (uint i = 0; i < _particles.size(); ++i) {
@@ -358,11 +370,12 @@ void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
   _angle = p.angle;
 
   // Smoothed location
-  _loc_smoothed = p.loc * (1 - CONFIG_location_smoothing) + _loc_smoothed * CONFIG_location_smoothing;
-  const Vector2f new_angle_vec(
-    cos(_angle_smoothed) * CONFIG_location_smoothing + cos(p.angle) * (1 - CONFIG_location_smoothing), 
-    sin(_angle_smoothed) * CONFIG_location_smoothing + sin(p.angle) * (1 - CONFIG_location_smoothing)
-  );
+  _loc_smoothed =
+      p.loc * (1 - CONFIG_location_smoothing) + _loc_smoothed * CONFIG_location_smoothing;
+  const Vector2f new_angle_vec(cos(_angle_smoothed) * CONFIG_location_smoothing +
+                                   cos(p.angle) * (1 - CONFIG_location_smoothing),
+                               sin(_angle_smoothed) * CONFIG_location_smoothing +
+                                   sin(p.angle) * (1 - CONFIG_location_smoothing));
   _angle_smoothed = atan2(new_angle_vec.y(), new_angle_vec.x());
 
   _location_dirty = false;
@@ -373,7 +386,7 @@ void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
 void ParticleFilter::GetSmoothedLocation(Eigen::Vector2f* loc, float* angle) {
   // Calling GetLocation checks to see if location is dirty, and recomputes it if so
   GetLocation(loc, angle);
-  
+
   if (CONFIG_flag_location_smoothing) {
     *loc = _loc_smoothed;
     *angle = _angle_smoothed;

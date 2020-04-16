@@ -34,8 +34,8 @@
 namespace particle_filter {
 
 struct Particle {
-  Particle(Eigen::Vector2f loc, float angle, double weight) : 
-    loc(loc), angle(angle), weight(weight) {}
+  Particle(Eigen::Vector2f loc, float angle, double weight)
+      : loc(loc), angle(angle), weight(weight) {}
   Eigen::Vector2f loc;
   float angle;
   double weight;
@@ -76,8 +76,8 @@ public:
 
   // For debugging: get predicted point cloud from current location.
   void GetPredictedPointCloud(const Eigen::Vector2f& loc, const float angle, int num_ranges,
-                              float range_min, float range_max, float angle_min, float angle_max, float angle_increment,
-                              std::vector<Eigen::Vector2f>* scan);
+                              float range_min, float range_max, float angle_min, float angle_max,
+                              float angle_increment, std::vector<Eigen::Vector2f>* scan);
 
   float ray_cast(const Eigen::Vector2f& loc, float angle, float max_range);
 
