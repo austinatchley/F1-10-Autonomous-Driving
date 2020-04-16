@@ -55,6 +55,8 @@ namespace particle_filter {
 CONFIG_BOOL(flag_location_smoothing, "flag_location_smoothing");
 CONFIG_BOOL(flag_laser_smoothing, "flag_laser_smoothing");
 CONFIG_BOOL(flag_variance_thresh, "flag_variance_thresh");
+CONFIG_BOOL(flag_experimental_s_min, "flag_experimental_s_min");
+CONFIG_BOOL(flag_experimental_dist_update, "flag_experimental_dist_update");
 
 CONFIG_FLOAT(k1, "k1");
 CONFIG_FLOAT(k2, "k2");
@@ -69,17 +71,18 @@ CONFIG_FLOAT(correlation, "correlation");
 CONFIG_FLOAT(sigma, "sigma");
 CONFIG_FLOAT(d_long, "d_long");
 CONFIG_FLOAT(d_short, "d_short");
-CONFIG_FLOAT(s_max_offset, "s_max_offset");
-CONFIG_FLOAT(s_min_offset, "s_min_offset");
+CONFIG_FLOAT(s_max, "s_max");
+CONFIG_FLOAT(s_min, "s_min");
 CONFIG_INT(stride, "stride");
 
 CONFIG_INT(resample_rate, "resample_rate");
+CONFIG_FLOAT(update_dist, "update_dist");
 CONFIG_FLOAT(var_threshold, "var_threshold");
 CONFIG_FLOAT(location_smoothing, "location_smoothing");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
-    : _prev_odom_loc(0, 0), _prev_odom_angle(0), _odom_initialized(false) {}
+    : _prev_odom_loc(0, 0), _prev_odom_angle(0), _odom_initialized(false), _dist_since_update(0.f) {}
 
 void ParticleFilter::GetParticles(vector<Particle>* particles) const {
   *particles = _particles;
@@ -159,8 +162,8 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   const float d_short = CONFIG_d_short;
 
   const float gamma = (1.f - CONFIG_correlation) + (CONFIG_correlation / (ranges.size() / stride));
-  const float s_min = range_min + CONFIG_s_min_offset;
-  const float s_max = range_max - CONFIG_s_max_offset;
+  const float s_min = CONFIG_s_min;
+  const float s_max = CONFIG_s_max;
 
   Particle& particle = *p_ptr;
   static vector<float> predicted;
@@ -175,7 +178,9 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
-    if (ranges[i] < s_min || ranges[i] > s_max) {
+    if (ranges[i] < range_min || ranges[i] > range_max) {
+      continue;
+    } else if (CONFIG_flag_experimental_s_min && ranges[i] - predicted[i] < s_min) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
       // There's something unexpected closer than the wall
@@ -248,6 +253,12 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
                                   float angle_min, float angle_max) {
   static uint frame_counter = 0;
 
+  if (CONFIG_flag_experimental_dist_update && _dist_since_update < CONFIG_update_dist) {
+    return;
+  }
+
+  _dist_since_update = 0.f;
+
   static vector<float> ranges_smoothed;
   ranges_smoothed = ranges;
   ConvolveGaussian(ranges_smoothed);
@@ -285,6 +296,8 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   }
 
   const Vector2f dx = odom_loc - _prev_odom_loc;
+  _dist_since_update += dx.norm();
+
   const Vector2f angle_vec(cos(odom_angle), sin(odom_angle));
   const double len = copysign(dx.norm(), dx.dot(angle_vec));
 

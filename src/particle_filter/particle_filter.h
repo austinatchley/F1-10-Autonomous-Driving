@@ -102,6 +102,7 @@ private:
   bool _location_dirty = true;
   Eigen::Vector2f _loc, _loc_smoothed;
   float _angle, _angle_smoothed;
+  float _dist_since_update;
 };
 } // namespace particle_filter
 

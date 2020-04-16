@@ -29,9 +29,10 @@ if flag_variance_thresh then
 end
 d_long = .75
 d_short = .75
-s_max_offset = 1.0
-s_min_offset = 0.05
+s_max = 2.5
+s_min = -2
 stride = 10
+update_dist = 0.05
 
 -- resample params
 resample_rate = 1
