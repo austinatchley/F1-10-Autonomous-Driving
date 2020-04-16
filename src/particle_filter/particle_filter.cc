@@ -111,6 +111,7 @@ void ParticleFilter::GetPredictedPointCloud(const Vector2f& loc, const float ang
   }
 }
 
+// Unoptimized raycast function
 float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range) {
   const Vector2f dir(cos(angle) * max_range, sin(angle) * max_range);
   static vector<geometry::line2f> lines;
@@ -128,8 +129,9 @@ float ParticleFilter::ray_cast(const Vector2f& loc, float angle, float max_range
 }
 
 void ParticleFilter::ConvolveGaussian(vector<float>& values) {
-  if (!CONFIG_flag_laser_smoothing)
+  if (!CONFIG_flag_laser_smoothing) {
     return;
+  }
 
   constexpr static array<float, 7> kernel {0.071303, 0.131514, 0.189879, 0.214607, 0.189879, 0.131514, 0.071303};  
   static vector<float> src;
@@ -146,7 +148,7 @@ void ParticleFilter::ConvolveGaussian(vector<float>& values) {
 
 void ParticleFilter::Update(const vector<float>& ranges, float range_min, float range_max,
                             float angle_min, float angle_max, Particle* p_ptr) {
-  const int stride = CONFIG_stride;
+  const int stride = CONFIG_stride; // These values are set in the config file (config/particle_filter.lua)
   const float sigma2 = CONFIG_sigma * CONFIG_sigma;
   const float d_long = CONFIG_d_long;
   const float d_short = CONFIG_d_short;
@@ -162,14 +164,17 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   _map.GetPredictedScan(particle.loc + Vector2f(cos(particle.angle), sin(particle.angle)) * 0.2, range_min, range_max, angle_min + particle.angle, angle_max + particle.angle, ranges.size(), &predicted);
   ConvolveGaussian(predicted);
 
+  // Robust observation likelihood model
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
     if (ranges[i] < s_min || ranges[i] > s_max) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
+      // There's something unexpected closer than the wall
       diff = pow(d_short, 2);
     } else if (ranges[i] - predicted[i] > d_long) {
+      // There's something unexpected beyond the wall
       diff = pow(d_long, 2);
     } else {
       diff = pow(abs(ranges[i] - predicted[i]), 2);
@@ -185,15 +190,15 @@ void ParticleFilter::Resample() {
     return;
   }
   
+  // Find max weight
   float w_max = _particles[0].weight;
   for (const Particle& p : _particles) {
     w_max = std::max(static_cast<double>(w_max), p.weight);
   }
-  // std::cout << "w_max " << w_max << std::endl;
 
+  // Normalize particle weights using the max
   for (Particle& p : _particles) {
     p.weight = exp(p.weight - w_max);
-    // std::cout << p.weight << std::endl;
   }
 
   const uint n = _particles.size();
@@ -202,16 +207,14 @@ void ParticleFilter::Resample() {
 
   const float x = _rng.UniformRandom(0, W);
   vector<Particle> resampled_particles;
-  // std::cout << "W " << W << std::endl << std::endl;
 
   for (uint i = 0; i < n; ++i) {
     float w = 0;
     for (const Particle& p : _particles) {
       w += p.weight;
 
-      // Low-variability resampling. Choose one rand number and other samples are at equidistant locations
+      // Low-variance resampling. Choose one rand number and other samples are at equidistant locations
       if (w > fmod(x + i * W / n, W)) {
-        // std::cout << "REPLICATED" << std::endl;
         resampled_particles.emplace_back(p);
         break;
       }
@@ -238,7 +241,7 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
   ranges_smoothed = ranges;
   ConvolveGaussian(ranges_smoothed);
 
-  double mean_weight = 0;
+  double mean_weight = 0; // Find for calculating the weight variance
   for (Particle& p : _particles) {
     Update(ranges_smoothed, range_min, range_max, angle_min, angle_max, &p);
     mean_weight += p.weight;
@@ -250,9 +253,10 @@ void ParticleFilter::ObserveLaser(const vector<float>& ranges, float range_min, 
     var += pow(p.weight - mean_weight, 2.0);
   }
   var = var / _particles.size();
-  std::cout << var << std::endl;
   
   ++frame_counter;
+
+  // If we are on a "resample frame" or our variance is above the threshold, resample
   if (frame_counter % CONFIG_resample_rate == 0 || var > CONFIG_var_threshold) {
     Resample();
   }
@@ -275,6 +279,7 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
 
   const float da = math_util::AngleDiff(odom_angle, _prev_odom_angle);
 
+  // Motion model
   for (Particle& p : _particles) {
     const Vector2f prev_loc = p.loc;
 
@@ -295,6 +300,7 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   _prev_odom_loc = odom_loc;
   _prev_odom_angle = odom_angle;
 
+  // Replace particles that hit walls
   for (auto it = _particles.begin(); it != _particles.end();) {
     Particle& p = *it;
     if (p.needs_resample) {
@@ -306,6 +312,7 @@ void ParticleFilter::ObserveOdometry(const Vector2f& odom_loc, const float odom_
   }
 }
 
+// Resamples a single particle to somewhere around our best location hypothesis
 void ParticleFilter::Resample(Particle& p) {
   constexpr float pos_x_sigma = 0.1;
   constexpr float pos_y_sigma = 0.1;
@@ -331,33 +338,42 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
 }
 
 void ParticleFilter::GetLocation(Eigen::Vector2f* loc, float* angle) {
-  if (_particles.size() != 0 && _location_dirty) {
-    uint best_particle = 0;
-    for (uint i = 0; i < _particles.size(); ++i) {
-      const particle_filter::Particle& p = _particles[i];
-      if (p.weight > _particles[best_particle].weight)
-        best_particle = i;
+  if (_particles.size() == 0 || !_location_dirty) {
+    *loc = _loc;
+    *angle = _angle;
+    return;
+  }
+  
+  // Location is dirty. Let's recompute it here
+  uint best_particle = 0;
+  for (uint i = 0; i < _particles.size(); ++i) {
+    const particle_filter::Particle& p = _particles[i];
+    if (p.weight > _particles[best_particle].weight) {
+      best_particle = i;
     }
-    const particle_filter::Particle& p = _particles[best_particle];
-    _loc = p.loc;
-    _angle = p.angle;
-
-    // smoothed location
-    _loc_smoothed = p.loc * (1 - CONFIG_location_smoothing) + _loc_smoothed * CONFIG_location_smoothing;
-    const Vector2f new_angle_vec(
-      cos(_angle_smoothed) * CONFIG_location_smoothing + cos(p.angle) * (1 - CONFIG_location_smoothing), 
-      sin(_angle_smoothed) * CONFIG_location_smoothing + sin(p.angle) * (1 - CONFIG_location_smoothing)
-    );
-    _angle_smoothed = atan2(new_angle_vec.y(), new_angle_vec.x());
-    _location_dirty = false;
   }
 
+  const particle_filter::Particle& p = _particles[best_particle];
+  _loc = p.loc;
+  _angle = p.angle;
+
+  // Smoothed location
+  _loc_smoothed = p.loc * (1 - CONFIG_location_smoothing) + _loc_smoothed * CONFIG_location_smoothing;
+  const Vector2f new_angle_vec(
+    cos(_angle_smoothed) * CONFIG_location_smoothing + cos(p.angle) * (1 - CONFIG_location_smoothing), 
+    sin(_angle_smoothed) * CONFIG_location_smoothing + sin(p.angle) * (1 - CONFIG_location_smoothing)
+  );
+  _angle_smoothed = atan2(new_angle_vec.y(), new_angle_vec.x());
+
+  _location_dirty = false;
   *loc = _loc;
   *angle = _angle;
 }
 
 void ParticleFilter::GetSmoothedLocation(Eigen::Vector2f* loc, float* angle) {
+  // Calling GetLocation checks to see if location is dirty, and recomputes it if so
   GetLocation(loc, angle);
+  
   if (CONFIG_flag_location_smoothing) {
     *loc = _loc_smoothed;
     *angle = _angle_smoothed;
