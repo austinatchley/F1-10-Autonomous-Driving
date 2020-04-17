@@ -22,12 +22,12 @@ k_rot_scale   = 1.20 -- tangent rotation scale
 
 -- observation likelihood params
 correlation = 0.9
-sigma = 2
+sigma = 0.15
 if flag_variance_thresh then
-    sigma = 1.85
+    -- sigma = 1.85
 end
-d_long = .75
-d_short = .75
+d_long = .25
+d_short = .2
 s_max = 9.0
 s_min = 0.1
 stride = 10
@@ -38,6 +38,6 @@ resample_rate = 1
 if flag_variance_thresh then
     resample_rate = 20
 end
-var_threshold = .035
+var_threshold = .5
 
 location_smoothing = 0.75
