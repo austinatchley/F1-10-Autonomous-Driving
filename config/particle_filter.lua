@@ -3,12 +3,9 @@ init_x = 14.7
 init_y = 14.24
 init_r = 0
 
-extra_features = true
-
 flag_location_smoothing = false
 flag_laser_smoothing = false
-flag_variance_thresh = extra_features
-flag_s_min = true
+flag_variance_thresh = true
 flag_dist_update = true
 
 -- particle distribution params
@@ -31,8 +28,8 @@ if flag_variance_thresh then
 end
 d_long = .75
 d_short = .75
-s_max = 2.5
-s_min = -2
+s_max = 9.0
+s_min = 0.1
 stride = 10
 update_dist = 0.05
 

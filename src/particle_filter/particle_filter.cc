@@ -55,7 +55,6 @@ namespace particle_filter {
 CONFIG_BOOL(flag_location_smoothing, "flag_location_smoothing");
 CONFIG_BOOL(flag_laser_smoothing, "flag_laser_smoothing");
 CONFIG_BOOL(flag_variance_thresh, "flag_variance_thresh");
-CONFIG_BOOL(flag_s_min, "flag_s_min");
 CONFIG_BOOL(flag_dist_update, "flag_dist_update");
 
 CONFIG_FLOAT(k1, "k1");
@@ -178,9 +177,7 @@ void ParticleFilter::Update(const vector<float>& ranges, float range_min, float 
   float p = 0.f;
   for (uint i = 0; i < ranges.size(); i += stride) {
     double diff = 0.0;
-    if (ranges[i] < range_min || ranges[i] > range_max) {
-      continue;
-    } else if (CONFIG_flag_s_min && ranges[i] - predicted[i] < s_min) {
+    if (ranges[i] < s_min || ranges[i] > s_max) {
       continue;
     } else if (ranges[i] - predicted[i] < -d_short) {
       // There's something unexpected closer than the wall
