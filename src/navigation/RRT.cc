@@ -33,6 +33,77 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
             rng.UniformRandom(_map_min.y(), _map_max.y())
         }};
 
+        visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
+        Vertex& x_nearest = Nearest(x_rand, vertices);
+        Vertex x_new = Steer(x_nearest, x_rand);
+
+        std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
+        std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
+
+        if (ObstacleFree(x_nearest, x_new)) {
+            vertices.push_back(x_new);
+            Vertex* x_min = &x_nearest;
+
+            std::vector<Vertex*> near;
+            GetNeighbors(vertices, x_new, near);
+
+            for (Vertex* x_near : near) {
+                if (ObstacleFree(*x_near, x_new)) {
+                    const float c = x_near->cost + Cost(*x_near, x_new);
+                    
+                    if (c < x_new.cost) {
+                        x_min = x_near;
+                    }
+                }
+            }
+
+            x_new.parent = x_min;
+            for (Vertex* x_near : near) {
+                if (x_near == x_min) { continue; }
+
+                if (ObstacleFree(*x_near, x_new) && x_near->cost > x_new.cost + Cost(x_new, *x_near)) {
+                    x_near->parent = &x_new;
+                }
+            }
+
+        }
+
+        if (ReachedGoal(x_new, goal)) {
+            break;
+        }
+ 
+    }
+
+    for (const Vertex& v : vertices) {
+        if (v.parent == nullptr)
+            continue;
+        visualization::DrawLine(v.loc, v.parent->loc, 0x404040, _msg);
+    }
+    
+    Vertex& nearest = Nearest(Vertex(goal), vertices);
+    Vertex* current = &nearest;
+    path.push_front(*current);
+    while (current->parent) {
+        current = current->parent;
+        path.push_front(*current);
+    }
+
+}
+
+void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
+    static constexpr int N = 5000; // TODO: Move to config file
+    static util_random::Random rng;
+    path.clear();
+
+    std::deque<Vertex> vertices;
+    vertices.push_back(Vertex(cur, 0.f));
+
+    for (int i = 0; i < N; ++i) {
+        const Vertex x_rand{{
+            rng.UniformRandom(_map_min.x(), _map_max.x()), 
+            rng.UniformRandom(_map_min.y(), _map_max.y())
+        }};
+
         // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
         Vertex& x_nearest = Nearest(x_rand, vertices);
         Vertex x_new = Steer(x_nearest, x_rand);
@@ -100,6 +171,20 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
     static constexpr float eta = 0.05f; // TODO: move to config file
     const Vector2f dx = x1.loc - x0.loc;
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
+}
+
+void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*> neighbors) {
+    static constexpr float neighborhood_radius = 1.f;
+
+    for (Vertex& other : vertices) {
+        if (x.distance(other) < neighborhood_radius) {
+            neighbors.push_back(&other);
+        }
+    }
+}
+
+float RRT::Cost(const Vertex& x0, const Vertex& x1) {
+    return x0.distance(x1);
 }
 
 void RRT::VisualizePath(std::deque<Vertex>& path) {

@@ -19,8 +19,11 @@ public:
 
     void Initialize();
 
-    // Finds a path between cur and goal
+    // Finds a path between cur and goal using RRT*
     void FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
+
+    // Finds a path between cur and goal using basic RRT
+    void FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
 
     // Returns true if we are within reasonable distance of the provided goal
     bool ReachedGoal(const Vertex& pos, const Vertex& goal);
@@ -33,11 +36,11 @@ public:
 
     Vertex& Nearest(const Vertex& x, std::deque<Vertex>& vertices);
 
-    // Returns a vector of indices in the vertices vector representing the neighbors of a give point
-    // std::vector<int> GetNeighbors(const Pose& x1);
+    // Returns a vector of points to the vertices representing the neighbors of a given point
+    void GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*> neighbors);
 
     // Returns the result of the edge cost function (i.e. Euclidean distance between points)
-    // float Cost(const Pose& x1, const Pose& x2);
+    float Cost(const Vertex& x0, const Vertex& x1);
 
     void VisualizePath(std::deque<Vertex>& path);
 

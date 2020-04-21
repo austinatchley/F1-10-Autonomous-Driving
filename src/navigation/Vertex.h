@@ -3,11 +3,10 @@
 namespace planning {
 using namespace Eigen;
 
-class Vertex {
-public:
-    Vertex() : loc(0.f, 0.f), _cost(0.f) {}
-    Vertex(const Vector2f& loc) : loc(loc), _cost(0.f) {}
-    Vertex(const Vector2f& loc, float cost) : loc(loc), _cost(cost) {}
+struct Vertex {
+    Vertex() : loc(0.f, 0.f), cost(0.f) {}
+    Vertex(const Vector2f& loc) : loc(loc), cost(0.f) {}
+    Vertex(const Vector2f& loc, float cost) : loc(loc), cost(cost) {}
 
     double distance(const Vertex& other) const {
         return (loc - other.loc).norm();
@@ -15,8 +14,7 @@ public:
 
     Vertex* parent = nullptr;
     Vector2f loc;
-private:
-    float _cost;
+    float cost;
     
     // float _angle;
 };
