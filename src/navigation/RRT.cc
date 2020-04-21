@@ -177,6 +177,8 @@ void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vecto
     static constexpr float neighborhood_radius = 1.f;
 
     for (Vertex& other : vertices) {
+        if (other.loc == x.loc) { continue; }
+
         if (x.distance(other) < neighborhood_radius) {
             neighbors.push_back(&other);
         }
