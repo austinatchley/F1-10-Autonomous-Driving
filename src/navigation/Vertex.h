@@ -1,18 +1,22 @@
-#include "Pose.h"
+#include "eigen3/Eigen/Dense"
 
 namespace planning {
+using namespace Eigen;
+
 class Vertex {
 public:
-    Vertex() : _pose(Vector2f(), 0.f), _cost(0.f) {}
-    Vertex(const Pose& pose) : _pose(pose), _cost(0.f) {}
-    Vertex(const Pose& pose, float cost) : _pose(pose), _cost(cost) {}
+    Vertex() : loc(0.f, 0.f), _cost(0.f) {}
+    Vertex(const Vector2f& loc) : loc(loc), _cost(0.f) {}
+    Vertex(const Vector2f& loc, float cost) : loc(loc), _cost(cost) {}
+    double distance(const Vertex& other) {
+        return (loc - other.loc).norm();
+    }
 
-    Vector2f GetPos() { return _pose.pos; }
-
-    // TODO: Add more functionality here based on the structure of our grid
-
+    Vertex* parent = nullptr;
+    Vector2f loc;
 private:
-    Pose _pose;
     float _cost;
+    
+    // float _angle;
 };
 } // namespace planning

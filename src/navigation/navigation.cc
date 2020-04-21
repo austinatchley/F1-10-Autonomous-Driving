@@ -27,7 +27,6 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "nav_msgs/Odometry.h"
-#include "Pose.h"
 #include "ros/ros.h"
 #include "shared/math/math_util.h"
 #include "shared/ros/ros_helpers.h"
@@ -61,20 +60,21 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
       _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(map_file) {
+      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   InitRosHeader("base_link", &drive_msg_.header);
-
-  // _rrt = planning::RRT(map_file);
+  
+  _map.Load(map_file);
+  _rrt.Initialize();
 }
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   _nav_complete = false;
-  _nav_make_plan = true;
+  _nav_find_path = true;
 
   _nav_goal_loc = loc;
   _nav_goal_angle = angle;
@@ -366,14 +366,11 @@ void Navigation::Run() {
   _time_integrate();
 
   // _nav_goal_loc = Vector2f(8.f, 0.f);
-  if (_nav_make_plan) {
-    _rrt.MakePlan(planning::Pose(_world_loc, _world_angle), 
-                  planning::Pose(_nav_goal_loc, _nav_goal_angle),
-                  _plan);
-    _nav_make_plan = false;
+  if (_nav_find_path) {
+    _rrt.FindPath(_world_loc, _nav_goal_loc, _plan);
+    _nav_find_path = false;
   }
-  if (_rrt.ReachedGoal(planning::Pose(_world_loc, _world_angle),
-                       planning::Pose(_nav_goal_loc, _nav_goal_angle))) {
+  if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
     _nav_complete = true;
     _plan.clear();
   }
