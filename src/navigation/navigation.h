@@ -20,6 +20,7 @@
 //========================================================================
 
 #include <vector>
+#include <deque>
 
 #include "eigen3/Eigen/Dense"
 #include "f1tenth_course/AckermannCurvatureDriveMsg.h"
@@ -183,7 +184,7 @@ private:
   planning::RRT _rrt;
 
   // Points to follow in the nav plan
-  std::vector<planning::Vertex> _plan;
+  std::deque<planning::Vertex> _path;
 };
 
 } // namespace navigation

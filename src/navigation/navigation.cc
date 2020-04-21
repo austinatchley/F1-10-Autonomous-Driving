@@ -60,7 +60,7 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
       _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map) {
+      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, global_viz_msg_) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
@@ -367,12 +367,12 @@ void Navigation::Run() {
 
   // _nav_goal_loc = Vector2f(8.f, 0.f);
   if (_nav_find_path) {
-    _rrt.FindPath(_world_loc, _nav_goal_loc, _plan);
+    _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
     _nav_find_path = false;
   }
   if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
     _nav_complete = true;
-    _plan.clear();
+    _path.clear();
   }
 
   const float curvature = _get_best_curvature();
@@ -392,11 +392,13 @@ void Navigation::Run() {
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
-  planning::RRT::VisualizePlan(_plan, global_viz_msg_);
+  _rrt.VisualizePath(_path);
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
   visualization::ClearVisualizationMsg(local_viz_msg_);
+  viz_pub_.publish(global_viz_msg_);
+  visualization::ClearVisualizationMsg(global_viz_msg_);
 }
 
 float Navigation::_now() {
