@@ -8,6 +8,12 @@ public:
     Vertex() : loc(0.f, 0.f), _cost(0.f) {}
     Vertex(const Vector2f& loc) : loc(loc), _cost(0.f) {}
     Vertex(const Vector2f& loc, float cost) : loc(loc), _cost(cost) {}
+    Vertex(const Vertex& other) {
+        loc = other.loc;
+        _cost = other._cost;
+        parent = nullptr;
+    }
+
     double distance(const Vertex& other) const {
         return (loc - other.loc).norm();
     } 

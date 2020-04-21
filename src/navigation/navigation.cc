@@ -366,14 +366,15 @@ void Navigation::Run() {
   _time_integrate();
 
   // _nav_goal_loc = Vector2f(8.f, 0.f);
-  if (_nav_find_path) {
+  // if (_nav_find_path) {
+  if (true) {
     _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
     _nav_find_path = false;
   }
-  if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
-    _nav_complete = true;
-    _path.clear();
-  }
+  // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
+  //   _nav_complete = true;
+  //   _path.clear();
+  // }
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
