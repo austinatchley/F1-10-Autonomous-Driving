@@ -8,11 +8,11 @@ RRT::RRT(const string& map_file) {
     _map.Load(map_file);
 }
 
-void RRT::MakePlan(const Pose& cur, const Pose& goal, std::vector<GridVertex>& plan) {
-    _goal = goal.pos;
+void RRT::MakePlan(const Pose& cur, const Pose& goal, std::vector<Vertex>& plan) {
+    _goal = goal;
 
     plan.clear();
-    plan.push_back(GridVertex(_goal));
+    plan.push_back(Vertex(_goal));
 }
 
 bool RRT::ReachedGoal(const Pose& pos, const Pose& goal) {

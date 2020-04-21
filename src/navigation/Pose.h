@@ -7,6 +7,7 @@ using Eigen::Vector2f;
 
 namespace planning {
 struct Pose {
+    Pose() : pos(Vector2f()), angle(0.f) {}
     Pose(Vector2f pos, float angle) : pos(pos), angle(angle) {}
 
     Vector2f pos;

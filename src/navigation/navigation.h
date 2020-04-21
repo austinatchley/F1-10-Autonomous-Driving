@@ -181,7 +181,7 @@ private:
   planning::RRT _rrt;
 
   // Points to follow in the nav plan
-  std::vector<planning::GridVertex> _plan;
+  std::vector<planning::Vertex> _plan;
 };
 
 } // namespace navigation
