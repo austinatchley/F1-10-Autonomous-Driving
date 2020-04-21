@@ -37,8 +37,8 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
         Vertex& x_nearest = Nearest(x_rand, vertices);
         Vertex x_new = Steer(x_nearest, x_rand);
 
-        std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
-        std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
+        // std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
+        // std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
 
         if (ObstacleFree(x_nearest, x_new)) {
             vertices.push_back(x_new);
@@ -173,7 +173,7 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
-void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*> neighbors) {
+void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
     static constexpr float neighborhood_radius = 1.f;
 
     for (Vertex& other : vertices) {

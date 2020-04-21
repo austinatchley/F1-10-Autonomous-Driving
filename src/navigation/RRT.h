@@ -37,7 +37,7 @@ public:
     Vertex& Nearest(const Vertex& x, std::deque<Vertex>& vertices);
 
     // Returns a vector of points to the vertices representing the neighbors of a given point
-    void GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*> neighbors);
+    void GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
 
     // Returns the result of the edge cost function (i.e. Euclidean distance between points)
     float Cost(const Vertex& x0, const Vertex& x1);
