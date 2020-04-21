@@ -369,6 +369,7 @@ void Navigation::Run() {
   // if (_nav_find_path) {
   if (true) {
     _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
+    std::cout << _path.size() << std::endl;
     _nav_find_path = false;
   }
   // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {

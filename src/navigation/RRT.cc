@@ -98,7 +98,7 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
 }
 
 void RRT::VisualizePath(std::deque<Vertex>& path) {
-    for (int i = 1; i < path.size(); ++i) {
+    for (uint i = 1; i < path.size(); ++i) {
         visualization::DrawLine(path[i].loc, path[i-1].loc, 0xAF00AF, _msg);
     }
 } 
