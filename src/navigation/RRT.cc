@@ -47,21 +47,27 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
             std::vector<Vertex*> near;
             GetNeighbors(vertices, x_new, near);
 
+            float c_min = x_nearest.cost + Cost(x_nearest, x_new);
+            // std::cout << "c_min: " << c_min << std::endl;
             for (Vertex* x_near : near) {
                 if (ObstacleFree(*x_near, x_new)) {
                     const float c = x_near->cost + Cost(*x_near, x_new);
-                    
-                    if (c < x_new.cost) {
+                    // std::cout << "c: " << c << std::endl;
+
+                    if (c < c_min) {
                         x_min = x_near;
+                        c_min = c;
                     }
                 }
             }
 
             x_new.parent = x_min;
+            x_new.cost = x_min->cost + Cost(x_new, *x_min);
+
             for (Vertex* x_near : near) {
                 if (x_near == x_min) { continue; }
 
-                if (ObstacleFree(*x_near, x_new) && x_near->cost > x_new.cost + Cost(x_new, *x_near)) {
+                if (ObstacleFree(*x_near, x_new) && x_near->cost + Cost(x_new, *x_near) < x_new.cost) {
                     x_near->parent = &x_new;
                 }
             }
@@ -147,6 +153,8 @@ Vertex& RRT::Nearest(const Vertex& x, std::deque<Vertex>& vertices) {
             min_dist = dist;
         }
     }
+
+    // std::cout << "nearest loc: " << vertices.at(min).loc << std::endl;
 
     return vertices.at(min);
 }
