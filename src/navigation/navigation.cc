@@ -366,8 +366,8 @@ void Navigation::Run() {
   _time_integrate();
 
   // _nav_goal_loc = Vector2f(8.f, 0.f);
-  // if (_nav_find_path) {
-  if (true) {
+  if (_nav_find_path) {
+  // if (true) {
     _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
     std::cout << _path.size() << std::endl;
     _nav_find_path = false;

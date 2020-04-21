@@ -2,6 +2,7 @@
 #include "RRT.h"
 
 #include "shared/util/random.h"
+#include "shared/math/geometry.h"
 #include "visualization/visualization.h"
 
 using std::string;
@@ -19,7 +20,7 @@ void RRT::Initialize() {
 }
 
 void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
-    static constexpr int N = 5000;
+    static constexpr int N = 5000; // TODO: Move to config file
     static util_random::Random rng;
     path.clear();
 
@@ -86,13 +87,17 @@ bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
 }
 
 bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
-    static constexpr float epsilon = 0.05f;
-    const Vector2f dx = (x1.loc - x0.loc).normalized() * epsilon;
-    return !_map.Intersects(x0.loc - dx, x1.loc + dx); 
+    static constexpr float min_dist = 0.05f;
+    for (const geometry::Line<float>& line : _map.lines) {
+        if (geometry::MinDistanceLineLine(line.p0, line.p1, x0.loc, x1.loc) < min_dist) {
+            return false;
+        }
+    }
+    return true;
 }
 
 Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
-    static constexpr float eta = 0.1f;
+    static constexpr float eta = 0.05f; // TODO: move to config file
     const Vector2f dx = x1.loc - x0.loc;
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
