@@ -23,6 +23,7 @@
 
 #include "eigen3/Eigen/Dense"
 #include "f1tenth_course/AckermannCurvatureDriveMsg.h"
+#include "RRT.h"
 
 #ifndef NAVIGATION_H
 #define NAVIGATION_H
@@ -124,6 +125,9 @@ private:
   float _target_position;
   float _target_curvature;
 
+  ////////////////////////
+  // Time-optimal controller 
+
   // current TOC speed output
   float _toc_speed = 0.f;
 
@@ -159,12 +163,25 @@ private:
 
   Eigen::Vector2f _odom_loc_start;
 
+  ////////////////////////
+  // Planning
+
   // Whether navigation is complete.
   bool _nav_complete;
+
+  // Whether we should make a nav plan on the next Run()
+  bool _nav_make_plan;
+
   // Navigation goal location.
   Eigen::Vector2f _nav_goal_loc;
   // Navigation goal angle.
   float _nav_goal_angle;
+
+  // RRT navigation planner
+  planning::RRT _rrt;
+
+  // Points to follow in the nav plan
+  std::vector<planning::GridVertex> _plan;
 };
 
 } // namespace navigation

@@ -32,6 +32,7 @@ SET(libs roslib roscpp rosbag glog gflags amrl-shared-lib boost_system lua5.1
 
 ADD_LIBRARY(shared_library
             src/visualization/visualization.cc
+            src/navigation/RRT.cc
             src/vector_map/vector_map.cc)
 
 ADD_SUBDIRECTORY(src/shared)

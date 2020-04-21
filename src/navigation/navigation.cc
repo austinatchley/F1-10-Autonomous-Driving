@@ -27,6 +27,7 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "nav_msgs/Odometry.h"
+#include "Pose.h"
 #include "ros/ros.h"
 #include "shared/math/math_util.h"
 #include "shared/ros/ros_helpers.h"
@@ -60,22 +61,23 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
       _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0) {
+      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(map_file) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   InitRosHeader("base_link", &drive_msg_.header);
+
+  // _rrt = planning::RRT(map_file);
 }
 
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
-  std::cout << "set nav goal" << std::endl;
-
   _nav_complete = false;
+  _nav_make_plan = true;
 
-  // nav_goal_loc_ = loc;
-  // nav_goal_angle_ = angle;
+  _nav_goal_loc = loc;
+  _nav_goal_angle = angle;
 }
 
 void Navigation::ResetOdomFrame() {
@@ -87,8 +89,8 @@ void Navigation::ResetOdomFrame() {
 }
 
 void Navigation::UpdateLocation(const Eigen::Vector2f& loc, float angle) {
-  // robot_loc_ = loc;
-  // robot_angle_ = angle;
+  _world_loc = loc;
+  _world_angle = angle;
 }
 
 void Navigation::UpdateOdometry(const Vector2f& loc, float angle, const Vector2f& vel,
@@ -363,7 +365,18 @@ float Navigation::_golden_section_search(float c0, float c1) {
 void Navigation::Run() {
   _time_integrate();
 
-  _nav_goal_loc = Vector2f(8.f, 0.f);
+  // _nav_goal_loc = Vector2f(8.f, 0.f);
+  if (_nav_make_plan) {
+    _rrt.MakePlan(planning::Pose(_world_loc, _world_angle), 
+                  planning::Pose(_nav_goal_loc, _nav_goal_angle),
+                  _plan);
+    _nav_make_plan = false;
+  }
+  if (_rrt.ReachedGoal(planning::Pose(_world_loc, _world_angle),
+                       planning::Pose(_nav_goal_loc, _nav_goal_angle))) {
+    _nav_complete = true;
+    _plan.clear();
+  }
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
@@ -381,6 +394,8 @@ void Navigation::Run() {
   visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000,
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
+
+  planning::RRT::VisualizePlan(_plan, global_viz_msg_);
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
