@@ -20,42 +20,40 @@ void RRT::Initialize() {
 }
 
 void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
-    static constexpr int N = 500; // TODO: Move to config file
+    static constexpr int N = 50000; // TODO: Move to config file
     static util_random::Random rng;
     path.clear();
 
     std::deque<Vertex> vertices;
     vertices.push_back(Vertex(cur, 0.f));
-
-    for (int i = 0; i < N; ++i) {
+    
+    int i;
+    for (i = 0; i < N; ++i) {
         const Vertex x_rand{{
             rng.UniformRandom(_map_min.x(), _map_max.x()), 
             rng.UniformRandom(_map_min.y(), _map_max.y())
         }};
 
-        visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
+        // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
         Vertex& x_nearest = Nearest(x_rand, vertices);
-        Vertex x_new_val = Steer(x_nearest, x_rand);
+        Vertex x_new_stack = Steer(x_nearest, x_rand);
 
         // std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
         // std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
 
-        if (ObstacleFree(x_nearest, x_new_val)) {
-            vertices.push_back(x_new_val);
+        if (ObstacleFree(x_nearest, x_new_stack)) {
+            vertices.push_back(x_new_stack);
             Vertex& x_new = vertices.back();
-
-            Vertex* x_min = &x_nearest;
 
             std::vector<Vertex*> near;
             GetNeighbors(vertices, x_new, near);
 
+            Vertex* x_min = &x_nearest;
             float c_min = x_nearest.cost + Cost(x_nearest, x_new);
-            // std::cout << "c_min: " << c_min << std::endl;
             for (Vertex* x_near : near) {
                 if (ObstacleFree(*x_near, x_new)) {
                     const float c = x_near->cost + Cost(*x_near, x_new);
-                    // std::cout << "c: " << c << std::endl;
-
+                    
                     if (c < c_min) {
                         x_min = x_near;
                         c_min = c;
@@ -64,28 +62,30 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
             }
 
             x_new.parent = x_min;
-            x_new.cost = x_min->cost + Cost(x_new, *x_min);
-
+            x_new.cost = x_min->cost + Cost(*x_min, x_new);
             for (Vertex* x_near : near) {
                 if (x_near == x_min) { continue; }
 
-                if (ObstacleFree(*x_near, x_new) && x_near->cost + Cost(x_new, *x_near) < x_new.cost) {
+                const float c = x_new.cost + Cost(x_new, *x_near);
+                if (ObstacleFree(x_new, *x_near) && c < x_near->cost) {
                     x_near->parent = &x_new;
+                    x_near->cost = c;
                 }
             }
 
         }
 
-        if (ReachedGoal(x_new_val, goal)) {
+        if (ReachedGoal(x_new_stack, goal)) {
             break;
         }
  
     }
+    std::cerr << "RTT* ITERS: " << i << std::endl;
 
     for (const Vertex& v : vertices) {
         if (v.parent == nullptr)
             continue;
-        visualization::DrawLine(v.loc, v.parent->loc, 0x404040, _msg);
+        visualization::DrawLine(v.loc, v.parent->loc, 0x808080, _msg);
     }
     
     Vertex& nearest = Nearest(Vertex(goal), vertices);
@@ -162,7 +162,7 @@ Vertex& RRT::Nearest(const Vertex& x, std::deque<Vertex>& vertices) {
 }
 
 bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
-    static constexpr float delta = 0.1;
+    static constexpr float delta = 0.5;
 
     return pos.distance(goal) < delta;
 }
@@ -178,17 +178,17 @@ bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
 }
 
 Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
-    static constexpr float eta = 0.05f; // TODO: move to config file
+    static constexpr float eta = 2.f; // TODO: move to config file
     const Vector2f dx = x1.loc - x0.loc;
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
 void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
-    static constexpr float neighborhood_radius = .2f;
+    static constexpr float neighborhood_radius = 2.f;
 
     for (Vertex& other : vertices) {
-        if (other.loc == x.loc) { continue; }
-
+        if (x.loc == other.loc)
+            continue;
         if (x.distance(other) < neighborhood_radius) {
             neighbors.push_back(&other);
         }
