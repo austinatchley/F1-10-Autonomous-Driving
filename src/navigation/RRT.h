@@ -1,5 +1,5 @@
-// #include <string>
 #include <deque>
+#include <unordered_map>
 
 #include "f1tenth_course/VisualizationMsg.h"
 #include "Vertex.h"
@@ -10,8 +10,17 @@ using std::string;
 #ifndef RRT_H
 #define RRT_H
 
+namespace std {
+    template<> struct hash<Eigen::Vector2i> {
+        std::size_t operator()(Eigen::Vector2i const& s) const noexcept {
+            return std::hash<int>()(s.x()) ^ (std::hash<int>()(s.y()) << 1);
+        }
+    };
+}
+
 namespace planning { 
 using namespace Eigen;
+using VertexGrid = std::unordered_map<Vector2i, std::vector<Vertex*>>;
 
 class RRT {
 public:
@@ -37,16 +46,22 @@ public:
     Vertex& Nearest(const Vertex& x, std::deque<Vertex>& vertices);
 
     // Returns a vector of points to the vertices representing the neighbors of a given point
-    void GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
+    void GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
+    void GetNaiveNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
 
     // Returns the result of the edge cost function (i.e. Euclidean distance between points)
     float Cost(const Vertex& x0, const Vertex& x1);
 
     void VisualizePath(std::deque<Vertex>& path);
 
-private:
+    Vector2i WorldToGrid(const Vector2f& world);
+    Vector2f GridToWorld(const Vector2i& grid);
+
+private:    
     Vector2f _map_min, _map_max;
     Vector2f _goal;
+
+    float _grid_size = 1.f;
 
     const vector_map::VectorMap& _map;
     f1tenth_course::VisualizationMsg& _msg;

@@ -1,5 +1,8 @@
-#include <deque>
 #include "RRT.h"
+
+#include <deque>
+#include <cmath>
+#include <unordered_map>
 
 #include "shared/util/random.h"
 #include "shared/math/geometry.h"
@@ -34,6 +37,9 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
     std::deque<Vertex> vertices;
     vertices.push_back(Vertex(cur, 0.f));
 
+    // Grid for spatial hashing
+    VertexGrid vertex_grid;
+
     size_t i = 0;
     for (; i < N; ++i) {
         const Vertex x_rand{{
@@ -52,8 +58,11 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
             vertices.push_back(x_new_stack);
             Vertex& x_new = vertices.back();
 
+            // Push a pointer to the vertex into our acceleration structure
+            vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
+
             std::vector<Vertex*> near;
-            GetNeighbors(vertices, x_new, near);
+            GetNeighbors(vertex_grid, vertices, x_new, near);
 
             Vertex* x_min = &x_nearest;
             float c_min = x_nearest.cost + Cost(x_nearest, x_new);
@@ -87,7 +96,7 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
         }
  
     }
-    std::cerr << "RTT* ITERS: " << i << std::endl;
+    std::cerr << "RRT* ITERS: " << i << std::endl;
 
     for (const Vertex& v : vertices) {
         if (v.parent == nullptr)
@@ -189,7 +198,29 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
-void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
+void RRT::GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
+    const float neighborhood_radius = CONFIG_rrt_neighborhood_radius; 
+
+    // find extrema using neighbohood radius
+    const Vector2i min_cell = WorldToGrid(x.loc - Vector2f(neighborhood_radius, neighborhood_radius));
+    const Vector2i max_cell = WorldToGrid(x.loc + Vector2f(neighborhood_radius, neighborhood_radius));
+
+    // iterate over rectangular region of grid cells, add to vector
+    for (int i = min_cell.x(); i <= max_cell.x(); ++i) {
+        for (int j = min_cell.y(); j <= max_cell.y(); ++j) {
+            for (Vertex* v : vertex_grid[Vector2i(i, j)]) {
+                if (x.loc == v->loc)
+                    continue;
+
+                if (x.distance(*v) < neighborhood_radius) {
+                    neighbors.push_back(v);
+                }
+            }
+        }
+    }
+}
+
+void RRT::GetNaiveNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
     const float neighborhood_radius = CONFIG_rrt_neighborhood_radius; 
 
     for (Vertex& other : vertices) {
@@ -202,13 +233,23 @@ void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vecto
 }
 
 float RRT::Cost(const Vertex& x0, const Vertex& x1) {
-    return x0.distance(x1);
+    return (x0.loc - x1.loc).squaredNorm();
 }
 
 void RRT::VisualizePath(std::deque<Vertex>& path) {
     for (uint i = 1; i < path.size(); ++i) {
         visualization::DrawLine(path[i].loc, path[i-1].loc, 0x69AF00, _msg);
     }
-} 
+}
+
+Vector2i RRT::WorldToGrid(const Vector2f& world) {
+    return Vector2i(std::floor(world.x() / _grid_size),
+                    std::floor(world.y() / _grid_size));
+}
+
+Vector2f RRT::GridToWorld(const Vector2i& grid) {
+    return Vector2f(grid.x() * _grid_size,
+                    grid.y() * _grid_size);
+}
 
 } // namespace planning
