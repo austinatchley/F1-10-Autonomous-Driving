@@ -4,11 +4,18 @@
 #include "shared/util/random.h"
 #include "shared/math/geometry.h"
 #include "visualization/visualization.h"
+#include "config_reader/config_reader.h"
 
 using std::string;
 using Eigen::Vector2f;
 
 namespace planning {
+CONFIG_INT(rrt_max_iter, "rrt_max_iter");
+CONFIG_FLOAT(rrt_goal_tolerance, "rrt_goal_tolerance");
+CONFIG_FLOAT(rrt_wall_dilation, "rrt_wall_dilation");
+CONFIG_FLOAT(rrt_neighborhood_radius, "rrt_neighborhood_radius");
+CONFIG_FLOAT(rrt_steering_eta, "rrt_steering_eta");
+config_reader::ConfigReader config_reader_({"config/navigation.lua"});
 
 void RRT::Initialize() {
     for (const geometry::Line<float>& line : _map.lines) {
@@ -20,7 +27,7 @@ void RRT::Initialize() {
 }
 
 void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
-    static constexpr int N = 50000; // TODO: Move to config file
+    const int N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
 
@@ -99,7 +106,7 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
 }
 
 void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
-    static constexpr int N = 5000; // TODO: Move to config file
+    const int N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
 
@@ -162,13 +169,12 @@ Vertex& RRT::Nearest(const Vertex& x, std::deque<Vertex>& vertices) {
 }
 
 bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
-    static constexpr float delta = 0.5;
-
+    const float delta = CONFIG_rrt_goal_tolerance;
     return pos.distance(goal) < delta;
 }
 
 bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
-    static constexpr float min_dist = 0.05f;
+    const float min_dist = CONFIG_rrt_wall_dilation;
     for (const geometry::Line<float>& line : _map.lines) {
         if (geometry::MinDistanceLineLine(line.p0, line.p1, x0.loc, x1.loc) < min_dist) {
             return false;
@@ -178,13 +184,13 @@ bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
 }
 
 Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
-    static constexpr float eta = 2.f; // TODO: move to config file
+    const float eta = CONFIG_rrt_steering_eta; 
     const Vector2f dx = x1.loc - x0.loc;
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
 void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
-    static constexpr float neighborhood_radius = 2.f;
+    const float neighborhood_radius = CONFIG_rrt_neighborhood_radius; 
 
     for (Vertex& other : vertices) {
         if (x.loc == other.loc)
