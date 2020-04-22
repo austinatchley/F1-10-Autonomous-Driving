@@ -92,7 +92,7 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
     for (const Vertex& v : vertices) {
         if (v.parent == nullptr)
             continue;
-        visualization::DrawLine(v.loc, v.parent->loc, 0x808080, _msg);
+        visualization::DrawLine(v.loc, v.parent->loc, 0x555555, _msg);
     }
     
     Vertex& nearest = Nearest(Vertex(goal), vertices);
@@ -207,7 +207,7 @@ float RRT::Cost(const Vertex& x0, const Vertex& x1) {
 
 void RRT::VisualizePath(std::deque<Vertex>& path) {
     for (uint i = 1; i < path.size(); ++i) {
-        visualization::DrawLine(path[i].loc, path[i-1].loc, 0xAF00AF, _msg);
+        visualization::DrawLine(path[i].loc, path[i-1].loc, 0x69AF00, _msg);
     }
 } 
 
