@@ -370,21 +370,23 @@ void Navigation::Run() {
 
   // _nav_goal_loc = Vector2f(8.f, 0.f);
   if (_nav_find_path) {
-  // if (true) {
     visualization::ClearVisualizationMsg(rtt_viz_msg_);
-    viz_pub_.publish(rtt_viz_msg_);
 
     auto now = std::chrono::high_resolution_clock::now();
-    size_t iterations = _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
+    size_t iterations = 0;
+    if (_rrt.FindPath(_world_loc, _nav_goal_loc, _path, iterations)) {
+      _nav_find_path = false;
+    }
+
     auto dt = std::chrono::high_resolution_clock::now() - now;
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
     
     std::cerr << us / iterations << std::endl;
 
     _rrt.VisualizePath(_path);
-    viz_pub_.publish(rtt_viz_msg_);
 
-    _nav_find_path = false;
+    visualization::DrawCross(_nav_goal_loc, 0.3f, 0xAF6900, rtt_viz_msg_);
+    viz_pub_.publish(rtt_viz_msg_);
   }
   // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
   //   _nav_complete = true;

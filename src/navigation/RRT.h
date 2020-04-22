@@ -26,10 +26,11 @@ class RRT {
 public:
     RRT(const vector_map::VectorMap& map, f1tenth_course::VisualizationMsg& msg) : _map(map), _msg(msg) {}
 
+    // Set map bounds and init misc values
     void Initialize();
 
     // Finds a path between cur and goal using RRT*
-    size_t FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
+    bool FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path, size_t& i);
 
     // Finds a path between cur and goal using basic RRT
     void FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);

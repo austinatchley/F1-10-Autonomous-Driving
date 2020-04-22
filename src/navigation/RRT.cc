@@ -21,6 +21,8 @@ CONFIG_FLOAT(rrt_steering_eta, "rrt_steering_eta");
 config_reader::ConfigReader config_reader_({"config/navigation.lua"});
 
 void RRT::Initialize() {
+    // TODO: Flood fill on init and compute the practical max/min,
+    // as opposed to the max/min defined by the map
     for (const geometry::Line<float>& line : _map.lines) {
         _map_min = _map_min.cwiseMin(line.p0);
         _map_min = _map_min.cwiseMin(line.p1);
@@ -29,7 +31,7 @@ void RRT::Initialize() {
     }
 }
 
-size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
+bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path, size_t& i) {
     const size_t N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
@@ -37,11 +39,12 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
     std::deque<Vertex> vertices;
     vertices.push_back(Vertex(cur, 0.f));
 
+    // TODO: Implement jump-point or Informed RRT*
+
     // Grid for spatial hashing
     VertexGrid vertex_grid;
 
-    size_t i = 0;
-    for (; i < N; ++i) {
+    for (i = 0; i < N; ++i) {
         const Vertex x_rand{{
             rng.UniformRandom(_map_min.x(), _map_max.x()), 
             rng.UniformRandom(_map_min.y(), _map_max.y())
@@ -88,11 +91,11 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
                     x_near->cost = c;
                 }
             }
-
-        }
-
-        if (ReachedGoal(x_new_stack, goal)) {
-            break;
+        
+            // TODO: Can we keep iterating on the path instead of just breaking here?
+            if (ReachedGoal(x_new_stack, goal)) {
+                break;
+            }
         }
  
     }
@@ -111,7 +114,8 @@ size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Verte
         current = current->parent;
         path.push_front(*current);
     }
-    return i;
+
+    return i < N;
 }
 
 void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
@@ -249,6 +253,8 @@ void RRT::GetNaiveNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::
 }
 
 float RRT::Cost(const Vertex& x0, const Vertex& x1) {
+    // TODO: Consider angle here
+
     return (x0.loc - x1.loc).squaredNorm();
 }
 
