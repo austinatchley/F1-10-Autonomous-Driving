@@ -20,7 +20,7 @@ void RRT::Initialize() {
 }
 
 void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
-    static constexpr int N = 5000; // TODO: Move to config file
+    static constexpr int N = 500; // TODO: Move to config file
     static util_random::Random rng;
     path.clear();
 
@@ -35,13 +35,15 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
 
         visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
         Vertex& x_nearest = Nearest(x_rand, vertices);
-        Vertex x_new = Steer(x_nearest, x_rand);
+        Vertex x_new_val = Steer(x_nearest, x_rand);
 
         // std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
         // std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
 
-        if (ObstacleFree(x_nearest, x_new)) {
-            vertices.push_back(x_new);
+        if (ObstacleFree(x_nearest, x_new_val)) {
+            vertices.push_back(x_new_val);
+            Vertex& x_new = vertices.back();
+
             Vertex* x_min = &x_nearest;
 
             std::vector<Vertex*> near;
@@ -74,7 +76,7 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
 
         }
 
-        if (ReachedGoal(x_new, goal)) {
+        if (ReachedGoal(x_new_val, goal)) {
             break;
         }
  
@@ -182,7 +184,7 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
 }
 
 void RRT::GetNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
-    static constexpr float neighborhood_radius = 1.f;
+    static constexpr float neighborhood_radius = .2f;
 
     for (Vertex& other : vertices) {
         if (other.loc == x.loc) { continue; }
