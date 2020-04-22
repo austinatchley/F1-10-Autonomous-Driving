@@ -1,0 +1,6 @@
+-- RRT/RRT* pathfinding parameters --
+rrt_max_iter = 25000
+rrt_goal_tolerance = 0.2 -- meters (set less than 2*wall_dilation for safety)
+rrt_wall_dilation = 0.2 -- meters
+rrt_neighborhood_radius = 2.0 -- meters
+rrt_steering_eta = 2.0 -- meters

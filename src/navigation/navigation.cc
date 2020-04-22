@@ -52,6 +52,7 @@ ros::Publisher drive_pub_;
 ros::Publisher viz_pub_;
 VisualizationMsg local_viz_msg_;
 VisualizationMsg global_viz_msg_;
+VisualizationMsg rtt_viz_msg_;
 AckermannCurvatureDriveMsg drive_msg_;
 } // namespace
 
@@ -61,12 +62,13 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
       _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, global_viz_msg_) {
+      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, rtt_viz_msg_) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
+  rtt_viz_msg_ = visualization::NewVisualizationMessage("map", "rtt_global");
   InitRosHeader("base_link", &drive_msg_.header);
   
   _map.Load(map_file);
@@ -369,14 +371,20 @@ void Navigation::Run() {
   // _nav_goal_loc = Vector2f(8.f, 0.f);
   if (_nav_find_path) {
   // if (true) {
-    _nav_find_path = false;
-    
+    visualization::ClearVisualizationMsg(rtt_viz_msg_);
+    viz_pub_.publish(rtt_viz_msg_);
+
     auto now = std::chrono::high_resolution_clock::now();
     size_t iterations = _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
     auto dt = std::chrono::high_resolution_clock::now() - now;
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
     
     std::cerr << us / iterations << std::endl;
+
+    _rrt.VisualizePath(_path);
+    viz_pub_.publish(rtt_viz_msg_);
+
+    _nav_find_path = false;
   }
   // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
   //   _nav_complete = true;
@@ -400,12 +408,12 @@ void Navigation::Run() {
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
-  _rrt.VisualizePath(_path);
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);
   visualization::ClearVisualizationMsg(local_viz_msg_);
-  viz_pub_.publish(global_viz_msg_);
+  // TODO: switch back to global viz msg
+  // viz_pub_.publish(global_viz_msg_);
   visualization::ClearVisualizationMsg(global_viz_msg_);
 }
 
