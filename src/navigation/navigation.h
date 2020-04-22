@@ -170,9 +170,6 @@ private:
   // Whether navigation is complete.
   bool _nav_complete;
 
-  // Whether we should make a nav plan on the next Run()
-  bool _nav_find_path;
-
   // Navigation goal location.
   Eigen::Vector2f _nav_goal_loc;
   // Navigation goal angle.

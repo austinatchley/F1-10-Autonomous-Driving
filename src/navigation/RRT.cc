@@ -36,9 +36,17 @@ void RRT::StartFindPath(const Vector2f& cur, const Vector2f& goal) {
     _vertex_grid.clear();
     _vertices.push_back(Vertex(cur, 0.f));
     _goal = goal;
+    _pathfinding = true;
+}
+
+bool RRT::IsFindingPath() {
+    return _pathfinding;
 }
 
 bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
+    if (!_pathfinding) {
+        throw std::runtime_error("Call StartFindPath() before FindPath()!");
+    }
     const size_t N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
@@ -116,7 +124,11 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
         path.push_front(*current);
     }
 
-    return i < N;
+    const bool success = i < N;
+    if (success) {
+        _pathfinding = false;
+    }
+    return success;
 }
 
 void RRT::FindNaivePath(std::deque<Vertex>& path) {

@@ -29,6 +29,7 @@ public:
     // Set map bounds and init misc values
     void Initialize();
     void StartFindPath(const Vector2f& cur, const Vector2f& goal);
+    bool IsFindingPath();
 
     // Finds a path between cur and goal using RRT*
     bool FindPath(std::deque<Vertex>& path, size_t& i);
@@ -59,7 +60,8 @@ public:
     Vector2i WorldToGrid(const Vector2f& world);
     Vector2f GridToWorld(const Vector2i& grid);
 
-private:    
+private:
+    bool _pathfinding = false;
     VertexGrid _vertex_grid;
     std::deque<Vertex> _vertices;
     Vector2f _map_min, _map_max;
