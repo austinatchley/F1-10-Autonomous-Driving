@@ -28,12 +28,13 @@ public:
 
     // Set map bounds and init misc values
     void Initialize();
+    void StartFindPath(const Vector2f& cur, const Vector2f& goal);
 
     // Finds a path between cur and goal using RRT*
-    bool FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path, size_t& i);
+    bool FindPath(std::deque<Vertex>& path, size_t& i);
 
     // Finds a path between cur and goal using basic RRT
-    void FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
+    void FindNaivePath(std::deque<Vertex>& path);
 
     // Returns true if we are within reasonable distance of the provided goal
     bool ReachedGoal(const Vertex& pos, const Vertex& goal);
@@ -44,11 +45,11 @@ public:
     // Returns a point between x0 and x1
     Vertex Steer(const Vertex& x0, const Vertex& x1);
 
-    Vertex& Nearest(const Vertex& x, std::deque<Vertex>& vertices);
+    Vertex& Nearest(const Vertex& x);
 
     // Returns a vector of points to the vertices representing the neighbors of a given point
-    void GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
-    void GetNaiveNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors);
+    void GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
+    void GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
 
     // Returns the result of the edge cost function (i.e. Euclidean distance between points)
     float Cost(const Vertex& x0, const Vertex& x1);
@@ -59,6 +60,8 @@ public:
     Vector2f GridToWorld(const Vector2i& grid);
 
 private:    
+    VertexGrid _vertex_grid;
+    std::deque<Vertex> _vertices;
     Vector2f _map_min, _map_max;
     Vector2f _goal;
 

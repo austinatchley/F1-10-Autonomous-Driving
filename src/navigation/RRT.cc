@@ -31,18 +31,19 @@ void RRT::Initialize() {
     }
 }
 
-bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path, size_t& i) {
+void RRT::StartFindPath(const Vector2f& cur, const Vector2f& goal) {
+    _vertices.clear();
+    _vertex_grid.clear();
+    _vertices.push_back(Vertex(cur, 0.f));
+    _goal = goal;
+}
+
+bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
     const size_t N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
 
-    std::deque<Vertex> vertices;
-    vertices.push_back(Vertex(cur, 0.f));
-
     // TODO: Implement jump-point or Informed RRT*
-
-    // Grid for spatial hashing
-    VertexGrid vertex_grid;
 
     for (i = 0; i < N; ++i) {
         const Vertex x_rand{{
@@ -51,21 +52,21 @@ bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
         }};
 
         // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
-        Vertex& x_nearest = Nearest(x_rand, vertices);
+        Vertex& x_nearest = Nearest(x_rand);
         Vertex x_new_stack = Steer(x_nearest, x_rand);
 
         // std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() << ", " << x_new.loc.y() << std::endl;
         // std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" : "BLOCKED") << std::endl;
 
         if (ObstacleFree(x_nearest, x_new_stack)) {
-            vertices.push_back(x_new_stack);
-            Vertex& x_new = vertices.back();
+            _vertices.push_back(x_new_stack);
+            Vertex& x_new = _vertices.back();
 
             // Push a pointer to the vertex into our acceleration structure
-            vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
+            _vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
 
             std::vector<Vertex*> near;
-            GetNeighbors(vertex_grid, vertices, x_new, near);
+            GetNeighbors(x_new, near);
 
             Vertex* x_min = &x_nearest;
             float c_min = x_nearest.cost + Cost(x_nearest, x_new);
@@ -93,7 +94,7 @@ bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
             }
         
             // TODO: Can we keep iterating on the path instead of just breaking here?
-            if (ReachedGoal(x_new_stack, goal)) {
+            if (ReachedGoal(x_new_stack, _goal)) {
                 break;
             }
         }
@@ -101,13 +102,13 @@ bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
     }
     std::cerr << "RRT* ITERS: " << i << std::endl;
 
-    for (const Vertex& v : vertices) {
+    for (const Vertex& v : _vertices) {
         if (v.parent == nullptr)
             continue;
         visualization::DrawLine(v.loc, v.parent->loc, 0x555555, _msg);
     }
     
-    Vertex& nearest = Nearest(Vertex(goal), vertices);
+    Vertex& nearest = Nearest(Vertex(_goal));
     Vertex* current = &nearest;
     path.push_front(*current);
     while (current->parent) {
@@ -118,13 +119,10 @@ bool RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
     return i < N;
 }
 
-void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
+void RRT::FindNaivePath(std::deque<Vertex>& path) {
     const int N = CONFIG_rrt_max_iter;
     static util_random::Random rng;
     path.clear();
-
-    std::deque<Vertex> vertices;
-    vertices.push_back(Vertex(cur, 0.f));
 
     for (int i = 0; i < N; ++i) {
         const Vertex x_rand{{
@@ -133,26 +131,26 @@ void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Ve
         }};
 
         // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
-        Vertex& x_nearest = Nearest(x_rand, vertices);
+        Vertex& x_nearest = Nearest(x_rand);
         Vertex x_new = Steer(x_nearest, x_rand);
 
         if (ObstacleFree(x_nearest, x_new)) {
             x_new.parent = &x_nearest;
-            vertices.push_back(x_new);
+            _vertices.push_back(x_new);
         }
 
-        if (ReachedGoal(x_new, goal)) {
+        if (ReachedGoal(x_new, _goal)) {
             break;
         }
     }
 
-    for (const Vertex& v : vertices) {
+    for (const Vertex& v : _vertices) {
         if (v.parent == nullptr)
             continue;
         visualization::DrawLine(v.loc, v.parent->loc, 0x404040, _msg);
     }
     
-    Vertex& nearest = Nearest(Vertex(goal), vertices);
+    Vertex& nearest = Nearest(Vertex(_goal));
     Vertex* current = &nearest;
     path.push_front(*current);
     while (current->parent) {
@@ -161,14 +159,14 @@ void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Ve
     }
 }
 
-Vertex& RRT::Nearest(const Vertex& x, std::deque<Vertex>& vertices) {
-    if (vertices.size() == 0) {
+Vertex& RRT::Nearest(const Vertex& x) {
+    if (_vertices.size() == 0) {
         throw std::runtime_error("vertices empty in Nearest()!");
     }
     float min_dist = std::numeric_limits<float>().max();
     int min = 0;
-    for (uint i = 0; i < vertices.size(); ++i) {
-        const Vertex& v = vertices.at(i);
+    for (uint i = 0; i < _vertices.size(); ++i) {
+        const Vertex& v = _vertices.at(i);
         const float dist = v.distance(x);
         if (dist < min_dist) {
             min = i;
@@ -176,9 +174,7 @@ Vertex& RRT::Nearest(const Vertex& x, std::deque<Vertex>& vertices) {
         }
     }
 
-    // std::cout << "nearest loc: " << vertices.at(min).loc << std::endl;
-
-    return vertices.at(min);
+    return _vertices.at(min);
 }
 
 bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
@@ -218,7 +214,7 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
     return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
-void RRT::GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
+void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors) {
     const float neighborhood_radius = CONFIG_rrt_neighborhood_radius; 
 
     // find extrema using neighbohood radius
@@ -228,7 +224,7 @@ void RRT::GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, co
     // iterate over rectangular region of grid cells, add to vector
     for (int i = min_cell.x(); i <= max_cell.x(); ++i) {
         for (int j = min_cell.y(); j <= max_cell.y(); ++j) {
-            for (Vertex* v : vertex_grid[Vector2i(i, j)]) {
+            for (Vertex* v : _vertex_grid[Vector2i(i, j)]) {
                 if (x.loc == v->loc)
                     continue;
 
@@ -240,10 +236,10 @@ void RRT::GetNeighbors(VertexGrid& vertex_grid, std::deque<Vertex>& vertices, co
     }
 }
 
-void RRT::GetNaiveNeighbors(std::deque<Vertex>& vertices, const Vertex& x, std::vector<Vertex*>& neighbors) {
+void RRT::GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors) {
     const float neighborhood_radius = CONFIG_rrt_neighborhood_radius; 
 
-    for (Vertex& other : vertices) {
+    for (Vertex& other : _vertices) {
         if (x.loc == other.loc)
             continue;
         if (x.distance(other) < neighborhood_radius) {

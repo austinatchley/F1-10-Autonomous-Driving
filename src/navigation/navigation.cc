@@ -78,6 +78,7 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
 void Navigation::SetNavGoal(const Vector2f& loc, float angle) {
   _nav_complete = false;
   _nav_find_path = true;
+  _rrt.StartFindPath(_world_loc, loc);
 
   _nav_goal_loc = loc;
   _nav_goal_angle = angle;
@@ -374,7 +375,7 @@ void Navigation::Run() {
 
     auto now = std::chrono::high_resolution_clock::now();
     size_t iterations = 0;
-    if (_rrt.FindPath(_world_loc, _nav_goal_loc, _path, iterations)) {
+    if (_rrt.FindPath(_path, iterations)) {
       _nav_find_path = false;
     }
 
