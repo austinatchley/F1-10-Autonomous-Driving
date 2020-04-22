@@ -184,7 +184,23 @@ bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
 
 bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
     const float min_dist = CONFIG_rrt_wall_dilation;
+
+    Vector2f min_a(std::min(x0.loc.x(), x1.loc.x()) - min_dist, 
+                   std::min(x0.loc.y(), x1.loc.y()) - min_dist);
+    Vector2f max_a(std::max(x0.loc.x(), x1.loc.x()) + min_dist,
+                   std::max(x0.loc.y(), x1.loc.y()) + min_dist);
+
     for (const geometry::Line<float>& line : _map.lines) {
+        Vector2f min_b(std::min(line.p0.x(), line.p1.x()) - min_dist, 
+                       std::min(line.p0.y(), line.p1.y()) - min_dist);
+        Vector2f max_b(std::max(line.p0.x(), line.p1.x()) + min_dist, 
+                       std::max(line.p0.y(), line.p1.y()) + min_dist);
+                       
+        // Broad phase check
+        if (min_a.x() > max_b.x() || min_a.y() > max_b.y() ||
+            max_a.x() < min_b.x() || max_a.y() < min_b.y()) {
+                continue;
+        }
         if (geometry::MinDistanceLineLine(line.p0, line.p1, x0.loc, x1.loc) < min_dist) {
             return false;
         }
