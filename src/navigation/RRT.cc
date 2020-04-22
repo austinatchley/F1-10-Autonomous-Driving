@@ -19,7 +19,7 @@ void RRT::Initialize() {
     }
 }
 
-void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
+size_t RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {
     static constexpr int N = 500; // TODO: Move to config file
     static util_random::Random rng;
     path.clear();
@@ -27,7 +27,8 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
     std::deque<Vertex> vertices;
     vertices.push_back(Vertex(cur, 0.f));
 
-    for (int i = 0; i < N; ++i) {
+    size_t i = 0;
+    for (; i < N; ++i) {
         const Vertex x_rand{{
             rng.UniformRandom(_map_min.x(), _map_max.x()), 
             rng.UniformRandom(_map_min.y(), _map_max.y())
@@ -95,7 +96,7 @@ void RRT::FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>
         current = current->parent;
         path.push_front(*current);
     }
-
+    return i;
 }
 
 void RRT::FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path) {

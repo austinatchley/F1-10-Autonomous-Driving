@@ -33,6 +33,7 @@
 #include "shared/util/timer.h"
 #include "visualization/visualization.h"
 #include <algorithm>
+#include <chrono>
 
 using Eigen::Rotation2D;
 using Eigen::Vector2f;
@@ -368,9 +369,14 @@ void Navigation::Run() {
   // _nav_goal_loc = Vector2f(8.f, 0.f);
   if (_nav_find_path) {
   // if (true) {
-    _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
-    std::cout << _path.size() << std::endl;
     _nav_find_path = false;
+    
+    auto now = std::chrono::high_resolution_clock::now();
+    size_t iterations = _rrt.FindPath(_world_loc, _nav_goal_loc, _path);
+    auto dt = std::chrono::high_resolution_clock::now() - now;
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
+    
+    std::cerr << us / iterations << std::endl;
   }
   // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
   //   _nav_complete = true;

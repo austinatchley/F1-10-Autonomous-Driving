@@ -20,7 +20,7 @@ public:
     void Initialize();
 
     // Finds a path between cur and goal using RRT*
-    void FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
+    size_t FindPath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
 
     // Finds a path between cur and goal using basic RRT
     void FindNaivePath(const Vector2f& cur, const Vector2f& goal, std::deque<Vertex>& path);
