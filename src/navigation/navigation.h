@@ -61,7 +61,7 @@ public:
 
   static constexpr float WEIGHT_CLEARANCE = 8.f;
   static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
-  static constexpr float WEIGHT_DISTANCE = -0.1f;
+  static constexpr float WEIGHT_DISTANCE = -4.f;
   static constexpr float WEIGHT_AVOID_WALLS = 0.f;
   static constexpr float WALL_AVOID_DISTANCE = 0.1f;
 
@@ -118,6 +118,8 @@ private:
   void _get_clearance(float& min_clearance, float& avg_clearance, float curvature,
                       float free_path_length);
 
+  Eigen::Vector2f _find_carrot();
+
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 
   ros::NodeHandle& _n;
@@ -163,6 +165,8 @@ private:
   float _odom_omega;
 
   Eigen::Vector2f _odom_loc_start;
+
+  Eigen::Vector2f _carrot_loc;
 
   ////////////////////////
   // Planning

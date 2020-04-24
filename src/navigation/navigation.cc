@@ -28,6 +28,7 @@
 #include "glog/logging.h"
 #include "nav_msgs/Odometry.h"
 #include "ros/ros.h"
+#include "shared/math/geometry.h"
 #include "shared/math/math_util.h"
 #include "shared/ros/ros_helpers.h"
 #include "shared/util/timer.h"
@@ -61,8 +62,8 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
                        float target_position, float target_curvature)
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
-      _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _nav_complete(true),
-      _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, rtt_viz_msg_) {
+      _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _carrot_loc(0, 0),
+      _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, rtt_viz_msg_) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
@@ -303,11 +304,12 @@ void Navigation::_get_clearance(float& min_clearance, float& avg_clearance, floa
 }
 
 float Navigation::_path_score(float curvature) {
-  const Vector2f closest_approach = _closest_approach(curvature, _nav_goal_loc);
+  const Vector2f closest_approach = _closest_approach(curvature, _carrot_loc);
 
   const float free_path_length = min(_get_free_path_length(curvature), 5.f);
 
-  const float distance_to_target = (_nav_goal_loc - closest_approach).norm();
+  const float distance_to_target = (_carrot_loc - closest_approach).norm();
+
   float min_clearance, avg_clearance;
   _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
 
@@ -368,8 +370,14 @@ float Navigation::_golden_section_search(float c0, float c1) {
 void Navigation::Run() {
   _time_integrate();
 
-  // _nav_goal_loc = Vector2f(8.f, 0.f);
-  if (_rrt.IsFindingPath()) {
+  if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
+    _nav_complete = true;
+    _path.clear();
+  }
+
+  // TODO: IF PATH EXISTS AND IS VALID
+
+  if (!_nav_complete && _rrt.IsFindingPath()) {
     visualization::ClearVisualizationMsg(rtt_viz_msg_);
 
     auto now = std::chrono::high_resolution_clock::now();
@@ -386,10 +394,12 @@ void Navigation::Run() {
     visualization::DrawCross(_nav_goal_loc, 0.3f, 0xAF6900, rtt_viz_msg_);
     viz_pub_.publish(rtt_viz_msg_);
   }
-  // if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
-  //   _nav_complete = true;
-  //   _path.clear();
-  // }
+
+  _carrot_loc = Vector2f(0.0f, 0.f);
+  if (!_nav_complete) {
+    const Vector2f carrot_global = _find_carrot();
+    _carrot_loc = Eigen::Rotation2D<float>(-_world_angle) * (carrot_global - _world_loc);
+  }
 
   const float curvature = _get_best_curvature();
   float free_path_length = _get_free_path_length(curvature);
@@ -408,7 +418,10 @@ void Navigation::Run() {
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
-  drive_pub_.publish(msg);
+  if (!_nav_complete && _carrot_loc != Vector2f(0.f, 0.f)) {
+    drive_pub_.publish(msg);
+  }
+
   viz_pub_.publish(local_viz_msg_);
   visualization::ClearVisualizationMsg(local_viz_msg_);
   // TODO: switch back to global viz msg
@@ -418,6 +431,26 @@ void Navigation::Run() {
 
 float Navigation::_now() {
   return ros::Time::now().toSec();
+}
+
+Vector2f Navigation::_find_carrot() {
+  static constexpr float radius = 2.f;
+
+  Vector2f carrot(0.f, 0.f);
+  if (_path.empty()) {
+    return carrot;
+  }
+
+  float sqdist = 0.f;
+  Vector2f intersection;
+  for (int i = _path.size() - 1; i > 0; --i) {
+    if (geometry::FurthestFreePointCircle(_path.at(i).loc, _path.at(i - 1).loc, _world_loc, radius,
+                                          &sqdist, &intersection)) {
+      break;
+    }
+  }
+
+  return intersection;
 }
 
 Vector2f Navigation::_get_relative_coord(Vector2f v1, Vector2f v2, float theta) {
