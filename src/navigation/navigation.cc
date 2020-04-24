@@ -70,7 +70,7 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
   rtt_viz_msg_ = visualization::NewVisualizationMessage("map", "rtt_global");
   InitRosHeader("base_link", &drive_msg_.header);
-  
+
   _map.Load(map_file);
   _rrt.Initialize();
 }
@@ -378,7 +378,7 @@ void Navigation::Run() {
 
     auto dt = std::chrono::high_resolution_clock::now() - now;
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
-    
+
     std::cerr << us / iterations << std::endl;
 
     _rrt.VisualizePath(_path);
@@ -407,7 +407,6 @@ void Navigation::Run() {
   visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000,
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
-
 
   drive_pub_.publish(msg);
   viz_pub_.publish(local_viz_msg_);

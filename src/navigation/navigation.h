@@ -19,12 +19,12 @@
 */
 //========================================================================
 
-#include <vector>
 #include <deque>
+#include <vector>
 
+#include "RRT.h"
 #include "eigen3/Eigen/Dense"
 #include "f1tenth_course/AckermannCurvatureDriveMsg.h"
-#include "RRT.h"
 
 #ifndef NAVIGATION_H
 #define NAVIGATION_H
@@ -127,7 +127,7 @@ private:
   float _target_curvature;
 
   ////////////////////////
-  // Time-optimal controller 
+  // Time-optimal controller
 
   // current TOC speed output
   float _toc_speed = 0.f;

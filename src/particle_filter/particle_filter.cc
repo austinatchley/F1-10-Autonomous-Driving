@@ -81,7 +81,8 @@ CONFIG_FLOAT(location_smoothing, "location_smoothing");
 config_reader::ConfigReader config_reader_({"config/particle_filter.lua"});
 
 ParticleFilter::ParticleFilter()
-    : _prev_odom_loc(0, 0), _prev_odom_angle(0), _odom_initialized(false), _dist_since_update(0.f) {}
+    : _prev_odom_loc(0, 0), _prev_odom_angle(0), _odom_initialized(false), _dist_since_update(0.f) {
+}
 
 void ParticleFilter::GetParticles(vector<Particle>* particles) const {
   *particles = _particles;
