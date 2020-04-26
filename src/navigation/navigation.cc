@@ -109,8 +109,6 @@ void Navigation::ObservePointCloud(double time) {}
 
 void Navigation::_time_integrate() {
   // TODO: better integrator
-  // const float d_theta = _odom_angle - _prev_odom_angle;
-  // const Vector2f rel_d_x = _get_relative_coord(_odom_loc, _prev_odom_loc, d_theta);
   const Vector2f d_x = _odom_loc - _prev_odom_loc;
   _velocity = d_x / TIMESTEP;
   _distance += d_x.norm();
@@ -174,7 +172,6 @@ AckermannCurvatureDriveMsg Navigation::_perform_toc(float distance, float curvat
 }
 
 bool Navigation::_is_in_straight_path(const Vector2f& p, float remaining_distance) {
-  // std::cout << p[0] << ", " << p[1] << std::endl;
   return abs(p[1]) < CAR_W && p.x() > 0.f && p.x() < remaining_distance;
 }
 
@@ -430,7 +427,6 @@ void Navigation::Run() {
 
   viz_pub_.publish(local_viz_msg_);
   visualization::ClearVisualizationMsg(local_viz_msg_);
-  // TODO: switch back to global viz msg
   // viz_pub_.publish(global_viz_msg_);
   visualization::ClearVisualizationMsg(global_viz_msg_);
 }
@@ -473,8 +469,6 @@ bool Navigation::_planned_path_valid() {
       return true;
     }
   }
-
-  std::cout << "Too far from path. Replanning" << std::endl;
 
   return false;
 }
