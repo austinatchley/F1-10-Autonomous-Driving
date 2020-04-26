@@ -30,10 +30,15 @@ public:
 
   // Set map bounds and init misc values
   void Initialize();
+
+  // Initialize path finding state for calls to FindPath
   void StartFindPath(const Vector2f& cur, const Vector2f& goal);
+
+  // Returns true if StartFindPath has been called and we have not reached success in FindPath
   bool IsFindingPath();
 
   // Finds a path between cur and goal using RRT*
+  // Results are improved upon successive calls if success was not reached (hit iteration limit)
   bool FindPath(std::deque<Vertex>& path, size_t& i);
 
   // Finds a path between cur and goal using basic RRT
@@ -48,18 +53,27 @@ public:
   // Returns a point between x0 and x1
   Vertex Steer(const Vertex& x0, const Vertex& x1);
 
+  // Returns the nearest vertex to x
   Vertex& Nearest(const Vertex& x);
 
   // Returns a vector of points to the vertices representing the neighbors of a given point
+  // Uses spatially hashed grid
   void GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
+
+  // Returns a vector of points to the vertices representing the neighbors of a given point
+  // Uses naive distance formula approach
   void GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
 
   // Returns the result of the edge cost function (i.e. Euclidean distance between points)
   float Cost(const Vertex& x0, const Vertex& x1);
 
+  // Draw path lines to _msg
   void VisualizePath(std::deque<Vertex>& path);
 
+  // Convert world coordinates to grid coordinates for spatial hashing grid
   Vector2i WorldToGrid(const Vector2f& world);
+
+  // Convert grid coordinates to world coordinates for going backwards from spatial hashing grid
   Vector2f GridToWorld(const Vector2i& grid);
 
 private:
