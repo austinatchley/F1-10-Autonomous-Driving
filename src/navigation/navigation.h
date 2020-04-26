@@ -119,6 +119,7 @@ private:
                       float free_path_length);
 
   Eigen::Vector2f _find_carrot();
+  bool _planned_path_valid();
 
   Eigen::Vector2f _get_relative_coord(Eigen::Vector2f v1, Eigen::Vector2f v2, float theta);
 

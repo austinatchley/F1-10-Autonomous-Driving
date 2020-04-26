@@ -375,7 +375,13 @@ void Navigation::Run() {
     _path.clear();
   }
 
-  // TODO: IF PATH EXISTS AND IS VALID
+  // If we haven't reached the goal yet but we are in the course of navigating,
+  // check to see if our planned path is valid. If not, let's replan
+  if (!_nav_complete && !_planned_path_valid()) {
+    _path.clear();
+    _rrt.StartFindPath(_world_loc, _nav_goal_loc);
+    _nav_complete = false;
+  }
 
   if (!_nav_complete && _rrt.IsFindingPath()) {
     visualization::ClearVisualizationMsg(rtt_viz_msg_);
@@ -451,6 +457,26 @@ Vector2f Navigation::_find_carrot() {
   }
 
   return intersection;
+}
+
+bool Navigation::_planned_path_valid() {
+  static constexpr float max_dist_to_edge = 0.5;
+
+  for (int i = _path.size() - 1; i >= 1; --i) {
+    const Vector2f& v0 = _path.at(i).loc;
+    const Vector2f& v1 = _path.at(i - 1).loc;
+
+    const Vector2f& projected_point = geometry::ProjectPointOntoLineSegment(_world_loc, v0, v1);
+    const float dist_to_edge = (_world_loc - projected_point).norm();
+
+    if (dist_to_edge < max_dist_to_edge) {
+      return true;
+    }
+  }
+
+  std::cout << "Too far from path. Replanning" << std::endl;
+
+  return false;
 }
 
 Vector2f Navigation::_get_relative_coord(Vector2f v1, Vector2f v2, float theta) {
