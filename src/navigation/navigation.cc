@@ -381,12 +381,12 @@ void Navigation::_update_global_path() {
   // if path is not fully resolved, keep running RRT
   if (_rrt.IsFindingPath()) {
     // time path update
-    auto now = std::chrono::high_resolution_clock::now();
+    // auto now = std::chrono::high_resolution_clock::now();
     size_t iterations = 0;
     _rrt.FindPath(_path, iterations);
-    auto dt = std::chrono::high_resolution_clock::now() - now;
-    auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
-    std::cerr << us / iterations << std::endl;
+    // auto dt = std::chrono::high_resolution_clock::now() - now;
+    // auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
+    // std::cerr << us / iterations << std::endl;
   }
 }
 
