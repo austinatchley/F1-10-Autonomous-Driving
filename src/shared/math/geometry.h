@@ -382,6 +382,50 @@ bool RayIntersect(const Eigen::Matrix<T, 2, 1>& ray_source,
   return intersects;
 }
 
+// Determine whether a segment intersects a circle, and if so, output the intersection
+// closer to line_b
+template <typename T>
+bool CircleSegmentIntersect(const Eigen::Matrix<T, 2, 1>& line_a,
+                            const Eigen::Matrix<T, 2, 1>& line_b,
+                            const Eigen::Matrix<T, 2, 1>& center, const T radius,
+                            Eigen::Matrix<T, 2, 1>& intersection) {
+  // https://mathworld.wolfram.com/Circle-LineIntersection.html
+  const Eigen::Matrix<T, 2, 1> a = line_a - center;
+  const Eigen::Matrix<T, 2, 1> b = line_b - center;
+  const T dx = b.x() - a.x();
+  const T dy = b.y() - a.y();
+  const T dr = sqrt(pow(dx, 2) + pow(dy, 2));
+  const T D = a.x() * b.y() - b.x() * a.y();
+  const T sgn_dy = dy < 0 ? -1 : 1;
+  const T discrim = pow(radius, 2) * pow(dr, 2) - pow(D, 2);
+
+  // throw out no intersection and tangent cases
+  if (discrim <= 0) {
+    return false;
+  }
+
+  // compute circle-line intersection x values and convert to line segment t parameter values
+  const T term = sgn_dy * dx * sqrt(discrim);
+  const T t0 =  ((D * dy + term) / pow(dr, 2) - a.x()) / dx;
+  const T t1 = ((D * dy - term) / pow(dr, 2) - a.x()) / dx;
+
+  // find an intersection that is within the line segment, if any
+  if (t0 < 0 || t0 > 1) {
+    if (t1 < 0 || t1 > 1) {
+      // neither intersection point lies within the segment
+      return false;
+    }
+    intersection = center + a + t1 * (b - a);
+    return true;
+  }
+  if (t1 < 0 || t1 > 1) {
+    intersection = center + a + t0 * (b - a);
+    return true;
+  }
+  intersection = center + a + std::max(t0, t1) * (b - a);
+  return true;
+}
+
 // Determines whether a ray intersects with a given circle
 
 template <typename T>

@@ -441,21 +441,21 @@ float Navigation::_now() {
 Vector2f Navigation::_find_carrot() {
   static constexpr float radius = 2.f;
 
-  Vector2f carrot(0.f, 0.f);
-  if (_path.empty()) {
+  Vector2f carrot = _nav_goal_loc;
+  if (_path.empty() || (_nav_goal_loc - _world_loc).norm() < radius) {
     return carrot;
   }
 
-  float sqdist = 0.f;
-  Vector2f intersection;
+  visualization::DrawArc(_world_loc, radius, 0, M_2PI, 0xff0000, global_viz_msg_);
+
   for (int i = _path.size() - 1; i > 0; --i) {
-    if (geometry::FurthestFreePointCircle(_path.at(i).loc, _path.at(i - 1).loc, _world_loc, radius,
-                                          &sqdist, &intersection)) {
+    if (geometry::CircleSegmentIntersect(_path.at(i - 1).loc, _path.at(i).loc, _world_loc, radius,
+                                         carrot)) {
       break;
     }
   }
 
-  return intersection;
+  return carrot;
 }
 
 bool Navigation::_planned_path_valid() {
