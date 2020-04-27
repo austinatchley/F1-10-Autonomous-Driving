@@ -32,7 +32,7 @@ public:
   void Initialize();
 
   // Initialize path finding state for calls to FindPath
-  void StartFindPath(const Vector2f& cur, const Vector2f& goal);
+  void StartFindPath(const Vector2f& start, const Vector2f& goal);
 
   // Returns true if StartFindPath has been called and we have not reached success in FindPath
   bool IsFindingPath();
@@ -75,11 +75,16 @@ public:
   Vector2f GridToWorld(const Vector2i& grid);
 
 private:
+  // clear the tree and insert start node
+  void _Reset();
+
   bool _pathfinding = false;
   VertexGrid _vertex_grid;
   std::deque<Vertex> _vertices;
   Vector2f _map_min, _map_max;
+  Vector2f _start;
   Vector2f _goal;
+  int _total_iter;
 
   float _grid_size = 1.f;
 

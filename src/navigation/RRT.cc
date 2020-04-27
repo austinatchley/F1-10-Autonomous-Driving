@@ -13,6 +13,8 @@ using Eigen::Vector2f;
 using std::string;
 
 namespace planning {
+CONFIG_INT(rrt_max_iter_frame, "rrt_max_iter_frame");
+CONFIG_INT(rrt_min_total_iter, "rrt_min_total_iter");
 CONFIG_INT(rrt_max_iter, "rrt_max_iter");
 CONFIG_FLOAT(rrt_goal_tolerance, "rrt_goal_tolerance");
 CONFIG_FLOAT(rrt_wall_dilation, "rrt_wall_dilation");
@@ -31,12 +33,18 @@ void RRT::Initialize() {
   }
 }
 
-void RRT::StartFindPath(const Vector2f& cur, const Vector2f& goal) {
-  _vertices.clear();
-  _vertex_grid.clear();
-  _vertices.push_back(Vertex(cur, 0.f));
+void RRT::StartFindPath(const Vector2f& start, const Vector2f& goal) {
+  _start = start;
   _goal = goal;
   _pathfinding = true;
+  _Reset();
+}
+
+void RRT::_Reset() {
+  _vertices.clear();
+  _vertex_grid.clear();
+  _vertices.push_back(Vertex(_start, 0.f));
+  _total_iter = 0;
 }
 
 bool RRT::IsFindingPath() {
@@ -47,13 +55,22 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
   if (!_pathfinding) {
     throw std::runtime_error("Call StartFindPath() before FindPath()!");
   }
-  const size_t N = CONFIG_rrt_max_iter;
+
   static util_random::Random rng;
   path.clear();
 
-  // TODO: Implement jump-point or Informed RRT*
+  bool reached_goal = false;
+  i = 0;
+  while (true) {
+    if (_total_iter + i >= CONFIG_rrt_max_iter) {
+      // hit total max iteration limit; reset tree and try again later
+      _Reset(); 
+      break;
+    }
+    if (i >= CONFIG_rrt_max_iter_frame) {
+      break;
+    }
 
-  for (i = 0; i < N; ++i) {
     const Vertex x_rand{{rng.UniformRandom(_map_min.x(), _map_max.x()),
                          rng.UniformRandom(_map_min.y(), _map_max.y())}};
 
@@ -97,13 +114,16 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
         }
       }
 
-      // TODO: Can we keep iterating on the path instead of just breaking here?
-      if (ReachedGoal(x_new_stack, _goal)) {
+      if (_total_iter >= CONFIG_rrt_min_total_iter && ReachedGoal(x_new_stack, _goal)) {
+        reached_goal = true;
         break;
       }
     }
+    ++i;
+    ++_total_iter;
   }
-  std::cerr << "RRT* ITERS: " << i << std::endl;
+  std::cerr << "RRT* iters: " << _total_iter << "/" << CONFIG_rrt_min_total_iter;
+  std::cerr << " (" << CONFIG_rrt_max_iter << " max)" << std::endl;
 
   // reconstruct best path
   Vertex& nearest = Nearest(Vertex(_goal));
@@ -114,12 +134,10 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
     path.push_front(*current);
   }
 
-  // check whether path reached goal before iteration limit
-  const bool success = i < N;
-  if (success) {
+  if (reached_goal) {
     _pathfinding = false;
   }
-  return success;
+  return reached_goal;
 }
 
 Vertex& RRT::Nearest(const Vertex& x) {
