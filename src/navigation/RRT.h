@@ -39,7 +39,11 @@ public:
 
   // Finds a path between cur and goal using RRT*
   // Results are improved upon successive calls if success was not reached (hit iteration limit)
-  bool FindPath(std::deque<Vertex>& path, size_t& i);
+  bool FindPath(std::deque<Vertex>& path, int& i);
+
+  // Choose the vertex with minimum-cost path to goal, or the closest vertex to goal
+  // if no vertices have reached the goal yet.
+  Vertex& SelectBestEndVertex();
 
   // Returns true if we are within reasonable distance of the provided goal
   bool ReachedGoal(const Vertex& pos, const Vertex& goal);
@@ -55,11 +59,11 @@ public:
 
   // Returns a vector of points to the vertices representing the neighbors of a given point
   // Uses spatially hashed grid
-  void GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
+  void GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius);
 
   // Returns a vector of points to the vertices representing the neighbors of a given point
   // Uses naive distance formula approach
-  void GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors);
+  void GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius);
 
   // Returns the result of the edge cost function (i.e. Euclidean distance between points)
   float Cost(const Vertex& x0, const Vertex& x1);

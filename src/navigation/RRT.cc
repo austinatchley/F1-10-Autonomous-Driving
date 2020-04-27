@@ -51,7 +51,7 @@ bool RRT::IsFindingPath() {
   return _pathfinding;
 }
 
-bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
+bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
   if (!_pathfinding) {
     throw std::runtime_error("Call StartFindPath() before FindPath()!");
   }
@@ -85,7 +85,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
       _vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
 
       std::vector<Vertex*> near;
-      GetNeighbors(x_new, near);
+      GetNeighbors(x_new, near, CONFIG_rrt_neighborhood_radius);
 
       Vertex* x_min = &x_nearest;
       float c_min = x_nearest.cost + Cost(x_nearest, x_new);
@@ -126,8 +126,8 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
   std::cerr << " (" << CONFIG_rrt_max_iter << " max)" << std::endl;
 
   // reconstruct best path
-  Vertex& nearest = Nearest(Vertex(_goal));
-  Vertex* current = &nearest;
+  Vertex& best_vertex = SelectBestEndVertex();
+  Vertex* current = &best_vertex;
   path.push_front(*current);
   while (current->parent) {
     current = current->parent;
@@ -138,6 +138,26 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
     _pathfinding = false;
   }
   return reached_goal;
+}
+
+Vertex& RRT::SelectBestEndVertex() {
+  const Vertex& goal_vertex(_goal);
+
+  // first try to select lowest cost vertex that reaches goal 
+  std::vector<Vertex*> near_goal;
+  GetNeighbors(goal_vertex, near_goal, CONFIG_rrt_goal_tolerance);
+  if (near_goal.size() > 0) {
+    Vertex* best_vertex = near_goal[0];
+    for (Vertex* v : near_goal) {
+      if (v->cost < best_vertex->cost) {
+        best_vertex = v;
+      }
+    }
+    return *best_vertex;
+  }
+
+  // otherwise select vertex nearest to goal
+  return Nearest(Vertex(_goal));
 }
 
 Vertex& RRT::Nearest(const Vertex& x) {
@@ -195,9 +215,7 @@ Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
   return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
 }
 
-void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors) {
-  const float neighborhood_radius = CONFIG_rrt_neighborhood_radius;
-
+void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius) {
   // find extrema using neighbohood radius
   const Vector2i min_cell = WorldToGrid(x.loc - Vector2f(neighborhood_radius, neighborhood_radius));
   const Vector2i max_cell = WorldToGrid(x.loc + Vector2f(neighborhood_radius, neighborhood_radius));
@@ -216,9 +234,7 @@ void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors) {
   }
 }
 
-void RRT::GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors) {
-  const float neighborhood_radius = CONFIG_rrt_neighborhood_radius;
-
+void RRT::GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius) {
   for (Vertex& other : _vertices) {
     if (x.loc == other.loc) continue;
     if (x.distance(other) < neighborhood_radius) {
