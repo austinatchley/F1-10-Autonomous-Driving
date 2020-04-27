@@ -61,11 +61,11 @@ public:
 
   static constexpr float WEIGHT_CLEARANCE = 8.f;
   static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
-  static constexpr float WEIGHT_DISTANCE = -4.f;
+  static constexpr float WEIGHT_DISTANCE = -8.f;
   static constexpr float WEIGHT_AVOID_WALLS = 0.f;
   static constexpr float WALL_AVOID_DISTANCE = 0.1f;
 
-  static constexpr float MAX_CLEARANCE = .33f;
+  static constexpr float MAX_CLEARANCE = .125f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;

@@ -312,7 +312,7 @@ float Navigation::_path_score(float curvature) {
   const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - min_clearance) * WEIGHT_AVOID_WALLS;
 
   const float score =
-      free_path_length + pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance +
+      pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance +
       WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
 
   visualization::DrawPathOption(curvature, free_path_length, score, local_viz_msg_);
@@ -459,7 +459,7 @@ Vector2f Navigation::_find_carrot() {
 }
 
 bool Navigation::_planned_path_valid() {
-  static constexpr float max_dist_to_edge = 0.5;
+  static constexpr float max_dist_to_edge = 2.0;
 
   for (int i = _path.size() - 1; i >= 1; --i) {
     const Vector2f& v0 = _path.at(i).loc;
