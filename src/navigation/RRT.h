@@ -41,9 +41,6 @@ public:
   // Results are improved upon successive calls if success was not reached (hit iteration limit)
   bool FindPath(std::deque<Vertex>& path, size_t& i);
 
-  // Finds a path between cur and goal using basic RRT
-  void FindNaivePath(std::deque<Vertex>& path);
-
   // Returns true if we are within reasonable distance of the provided goal
   bool ReachedGoal(const Vertex& pos, const Vertex& goal);
 
@@ -69,6 +66,7 @@ public:
 
   // Draw path lines to _msg
   void VisualizePath(std::deque<Vertex>& path);
+  void VisualizeCurrentTree();
 
   // Convert world coordinates to grid coordinates for spatial hashing grid
   Vector2i WorldToGrid(const Vector2f& world);

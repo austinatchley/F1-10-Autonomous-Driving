@@ -118,6 +118,8 @@ private:
   void _get_clearance(float& min_clearance, float& avg_clearance, float curvature,
                       float free_path_length);
 
+  void _update_global_path();
+
   // Performs local planning based on the global path we've found
   Eigen::Vector2f _find_carrot();
 

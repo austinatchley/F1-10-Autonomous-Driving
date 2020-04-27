@@ -57,13 +57,8 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
     const Vertex x_rand{{rng.UniformRandom(_map_min.x(), _map_max.x()),
                          rng.UniformRandom(_map_min.y(), _map_max.y())}};
 
-    // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
     Vertex& x_nearest = Nearest(x_rand);
     Vertex x_new_stack = Steer(x_nearest, x_rand);
-
-    // std::cout << "(" << x_rand.loc.x() << ", " << x_rand.loc.y() << ") -> (" << x_new.loc.x() <<
-    // ", " << x_new.loc.y() << std::endl; std::cout << (ObstacleFree(x_nearest, x_new) ? "FREE" :
-    // "BLOCKED") << std::endl;
 
     if (ObstacleFree(x_nearest, x_new_stack)) {
       _vertices.push_back(x_new_stack);
@@ -110,11 +105,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
   }
   std::cerr << "RRT* ITERS: " << i << std::endl;
 
-  for (const Vertex& v : _vertices) {
-    if (v.parent == nullptr) continue;
-    visualization::DrawLine(v.loc, v.parent->loc, 0x555555, _msg);
-  }
-
+  // reconstruct best path
   Vertex& nearest = Nearest(Vertex(_goal));
   Vertex* current = &nearest;
   path.push_front(*current);
@@ -123,48 +114,12 @@ bool RRT::FindPath(std::deque<Vertex>& path, size_t& i) {
     path.push_front(*current);
   }
 
+  // check whether path reached goal before iteration limit
   const bool success = i < N;
   if (success) {
     _pathfinding = false;
   }
   return success;
-}
-
-void RRT::FindNaivePath(std::deque<Vertex>& path) {
-  const int N = CONFIG_rrt_max_iter;
-  static util_random::Random rng;
-  path.clear();
-
-  for (int i = 0; i < N; ++i) {
-    const Vertex x_rand{{rng.UniformRandom(_map_min.x(), _map_max.x()),
-                         rng.UniformRandom(_map_min.y(), _map_max.y())}};
-
-    // visualization::DrawPoint(x_rand.loc, 0x007000, _msg);
-    Vertex& x_nearest = Nearest(x_rand);
-    Vertex x_new = Steer(x_nearest, x_rand);
-
-    if (ObstacleFree(x_nearest, x_new)) {
-      x_new.parent = &x_nearest;
-      _vertices.push_back(x_new);
-    }
-
-    if (ReachedGoal(x_new, _goal)) {
-      break;
-    }
-  }
-
-  for (const Vertex& v : _vertices) {
-    if (v.parent == nullptr) continue;
-    visualization::DrawLine(v.loc, v.parent->loc, 0x404040, _msg);
-  }
-
-  Vertex& nearest = Nearest(Vertex(_goal));
-  Vertex* current = &nearest;
-  path.push_front(*current);
-  while (current->parent) {
-    current = current->parent;
-    path.push_front(*current);
-  }
 }
 
 Vertex& RRT::Nearest(const Vertex& x) {
@@ -263,6 +218,13 @@ float RRT::Cost(const Vertex& x0, const Vertex& x1) {
 void RRT::VisualizePath(std::deque<Vertex>& path) {
   for (uint i = 1; i < path.size(); ++i) {
     visualization::DrawLine(path[i].loc, path[i - 1].loc, 0x69AF00, _msg);
+  }
+}
+
+void RRT::VisualizeCurrentTree() {
+  for (const Vertex& v : _vertices) {
+    if (v.parent == nullptr) continue;
+    visualization::DrawLine(v.loc, v.parent->loc, 0x555555, _msg);
   }
 }
 

@@ -63,13 +63,12 @@ Navigation::Navigation(const string& map_file, const string& odom_topic, ros::No
     : _n(n), _odom_topic(odom_topic), _target_position(target_position),
       _target_curvature(target_curvature), _world_loc(0, 0), _world_angle(0), _world_vel(0, 0),
       _world_omega(0), _odom_loc(0, 0), _odom_loc_start(0, 0), _carrot_loc(0, 0),
-      _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, rtt_viz_msg_) {
+      _nav_complete(true), _nav_goal_loc(0, 0), _nav_goal_angle(0), _rrt(_map, global_viz_msg_) {
   drive_pub_ = n.advertise<AckermannCurvatureDriveMsg>("ackermann_curvature_drive", 1);
   viz_pub_ = n.advertise<VisualizationMsg>("visualization", 1);
 
   local_viz_msg_ = visualization::NewVisualizationMessage("base_link", "navigation_local");
   global_viz_msg_ = visualization::NewVisualizationMessage("map", "navigation_global");
-  rtt_viz_msg_ = visualization::NewVisualizationMessage("map", "rtt_global");
   InitRosHeader("base_link", &drive_msg_.header);
 
   _map.Load(map_file);
@@ -225,7 +224,7 @@ float Navigation::_get_free_path_length(float curvature) {
   for (const Vector2f& point : point_cloud) {
     if (_is_in_path(point, curvature, length, r1, r2)) {
       const float point_dist = _arc_distance_safe(point, curvature);
-      visualization::DrawCross(point, 0.1, 0x117dff, local_viz_msg_);
+      // visualization::DrawCross(point, 0.1, 0x117dff, local_viz_msg_);
       if (point_dist < length) {
         length = point_dist;
       }
@@ -364,70 +363,74 @@ float Navigation::_golden_section_search(float c0, float c1) {
   return (c0 + c1) / 2.f;
 }
 
-void Navigation::Run() {
-  _time_integrate();
-
+void Navigation::_update_global_path() {
+  if (_nav_complete)
+    return;
+  
   if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
     _nav_complete = true;
     _path.clear();
+    return;
   }
 
-  // If we haven't reached the goal yet but we are in the course of navigating,
-  // check to see if our planned path is valid. If not, let's replan
-  if (!_nav_complete && !_planned_path_valid()) {
-    _path.clear();
+  // restart path planning if necessary
+  if (!_planned_path_valid()) {
     _rrt.StartFindPath(_world_loc, _nav_goal_loc);
-    _nav_complete = false;
   }
 
-  if (!_nav_complete && _rrt.IsFindingPath()) {
-    visualization::ClearVisualizationMsg(rtt_viz_msg_);
-
+  // if path is not fully resolved, keep running RRT
+  if (_rrt.IsFindingPath()) {
+    // time path update
     auto now = std::chrono::high_resolution_clock::now();
     size_t iterations = 0;
     _rrt.FindPath(_path, iterations);
-
     auto dt = std::chrono::high_resolution_clock::now() - now;
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(dt).count();
-
     std::cerr << us / iterations << std::endl;
-
-    _rrt.VisualizePath(_path);
-
-    visualization::DrawCross(_nav_goal_loc, 0.3f, 0xAF6900, rtt_viz_msg_);
-    viz_pub_.publish(rtt_viz_msg_);
   }
+}
 
-  _carrot_loc = Vector2f(0.0f, 0.f);
+void Navigation::Run() {
+  _time_integrate();
+  _update_global_path();
+
+  AckermannCurvatureDriveMsg msg; 
   if (!_nav_complete) {
+    // compute local carrot from global path
     const Vector2f carrot_global = _find_carrot();
     _carrot_loc = Eigen::Rotation2D<float>(-_world_angle) * (carrot_global - _world_loc);
+    visualization::DrawCross(carrot_global, 0.2f, 0xAF6900, global_viz_msg_);
+
+    // perform local navigation
+    const float curvature = _get_best_curvature();
+    float free_path_length = _get_free_path_length(curvature);
+    float target_position = min(_target_position, _distance + free_path_length);
+    msg = _perform_toc(target_position, curvature);
+
+    // visualize best path option
+    float min_clearance, avg_clearance;
+    _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
+    visualization::DrawPathOption(curvature, free_path_length, min_clearance + CAR_W, local_viz_msg_);
   }
+  drive_pub_.publish(msg);
 
-  const float curvature = _get_best_curvature();
-  float free_path_length = _get_free_path_length(curvature);
+  // visualize nav goal
+  visualization::DrawCross(_nav_goal_loc, 0.3f, 0xAF6900, global_viz_msg_);
 
-  float min_clearance, avg_clearance;
-  _get_clearance(min_clearance, avg_clearance, curvature, free_path_length);
-  visualization::DrawPathOption(curvature, free_path_length, min_clearance + CAR_W, local_viz_msg_);
+  // visualize global pathing
+  _rrt.VisualizeCurrentTree();
+  _rrt.VisualizePath(_path);
 
-  float target_position = min(_target_position, _distance + free_path_length);
-
-  auto msg = _perform_toc(target_position, curvature);
-
+  // visualize robot outline
   visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(0, CAR_W), 0xff0000, local_viz_msg_);
   visualization::DrawLine(Vector2f(0, -CAR_W), Vector2f(CAR_L, -CAR_W), 0xff0000, local_viz_msg_);
   visualization::DrawLine(Vector2f(CAR_L, -CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000,
                           local_viz_msg_);
   visualization::DrawLine(Vector2f(0, CAR_W), Vector2f(CAR_L, CAR_W), 0xff0000, local_viz_msg_);
 
-  if (!_nav_complete && _carrot_loc != Vector2f(0.f, 0.f)) {
-    drive_pub_.publish(msg);
-  }
-
   viz_pub_.publish(local_viz_msg_);
   visualization::ClearVisualizationMsg(local_viz_msg_);
-  // viz_pub_.publish(global_viz_msg_);
+  viz_pub_.publish(global_viz_msg_);
   visualization::ClearVisualizationMsg(global_viz_msg_);
 }
 
