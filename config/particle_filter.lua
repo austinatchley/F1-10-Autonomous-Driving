@@ -9,10 +9,10 @@ flag_variance_thresh = true
 flag_dist_update = true
 
 -- particle distribution params
-k1 = 0.20 -- tangent translation error from translation 
+k1 = 0.40 -- tangent translation error from translation 
 k2 = 0.05 -- tangent translation error from rotation
 k3 = 0.01 -- normal translation error from translation
-k4 = 0.05 -- normal translation error from rotation
+k4 = 0.15 -- normal translation error from rotation
 k5 = 0.15 -- rotation error from translation
 k6 = 0.30 -- rotation error from rotation
 
@@ -22,7 +22,7 @@ k_rot_scale   = 1.20 -- tangent rotation scale
 
 -- observation likelihood params
 correlation = 0.9
-sigma = 0.15
+sigma = 0.25
 if flag_variance_thresh then
     -- sigma = 1.85
 end
@@ -36,7 +36,7 @@ update_dist = 0.05
 -- resample params
 resample_rate = 1
 if flag_variance_thresh then
-    resample_rate = 20
+    -- resample_rate = 20
 end
 var_threshold = .5
 
