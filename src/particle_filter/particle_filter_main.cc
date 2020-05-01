@@ -51,6 +51,7 @@
 #include "particle_filter.h"
 #include "vector_map/vector_map.h"
 #include "visualization/visualization.h"
+#include "navigation/navigation.h"
 
 using Eigen::Vector2f;
 using f1tenth_course::VisualizationMsg;
@@ -140,7 +141,7 @@ void PublishParticles() {
   for (uint i = 0; i < last_laser_msg_.ranges.size(); ++i) {
     const double laser_range = laser_ranges[i];
     const double laser_angle = last_laser_msg_.angle_min + i * last_laser_msg_.angle_increment;
-    DrawPoint(loc + Vector2f(cos(angle + laser_angle) * laser_range,
+    DrawPoint(loc + Vector2f(cos(angle + laser_angle) * (laser_range + navigation::LASER_OFFSET),
                              sin(angle + laser_angle) * laser_range),
               0x70FFFF, vis_msg_);
   }
