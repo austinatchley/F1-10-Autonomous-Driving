@@ -9,12 +9,12 @@ flag_variance_thresh = true
 flag_dist_update = true
 
 -- particle distribution params
-k1 = 0.70 -- tangent translation error from translation 
+k1 = 0.20 -- tangent translation error from translation 
 k2 = 0.05 -- tangent translation error from rotation
 k3 = 0.01 -- normal translation error from translation
 k4 = 0.05 -- normal translation error from rotation
-k5 = 0.30 -- rotation error from translation
-k6 = 0.70 -- rotation error from rotation
+k5 = 0.15 -- rotation error from translation
+k6 = 0.30 -- rotation error from rotation
 
 -- params for fixing incorrect odom calibration
 k_trans_scale = 1.00 -- tangent translation scale
@@ -41,3 +41,12 @@ end
 var_threshold = .5
 
 location_smoothing = 0.75
+
+-- RRT/RRT* pathfinding parameters --
+rrt_max_iter_frame = 5000 -- maximum iterations per frame
+rrt_min_total_iter = 40000 -- minimum total iterations before stopping
+rrt_max_iter = 60000 -- total max iterations before giving up
+rrt_goal_tolerance = 0.5 -- meters (set less than 2*wall_dilation for safety)
+rrt_wall_dilation = 0.15 -- meters
+rrt_neighborhood_radius = 1.5 -- meters
+rrt_steering_eta = 1.0 -- meters
