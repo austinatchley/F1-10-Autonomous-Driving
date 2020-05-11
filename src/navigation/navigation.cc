@@ -312,8 +312,7 @@ float Navigation::_path_score(float curvature) {
   const float wall_avoidance = -max(0.f, WALL_AVOID_DISTANCE - min_clearance) * WEIGHT_AVOID_WALLS;
 
   const float score =
-      pow(free_path_length, 2.0) * WEIGHT_CLEARANCE * min_clearance +
-      WEIGHT_AVG_CLEARANCE * avg_clearance + WEIGHT_DISTANCE * distance_to_target + wall_avoidance;
+      free_path_length + WEIGHT_CLEARANCE * min_clearance + WEIGHT_DISTANCE * distance_to_target;
 
   visualization::DrawPathOption(curvature, free_path_length, score, local_viz_msg_);
   return score;
@@ -395,7 +394,7 @@ void Navigation::Run() {
   _update_global_path();
 
   AckermannCurvatureDriveMsg msg; 
-  if (!_nav_complete) {
+  if (!_nav_complete && !_rrt.IsFindingPath()) {
     // compute local carrot from global path
     const Vector2f carrot_global = _find_carrot();
     _carrot_loc = Eigen::Rotation2D<float>(-_world_angle) * (carrot_global - _world_loc);

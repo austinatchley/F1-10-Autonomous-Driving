@@ -59,13 +59,13 @@ public:
   static constexpr float LATENCY = 0.085f;
   static constexpr float ACTUATION_LATENCY = LATENCY;
 
-  static constexpr float WEIGHT_CLEARANCE = 8.f;
+  static constexpr float WEIGHT_CLEARANCE = 10.f;
   static constexpr float WEIGHT_AVG_CLEARANCE = 0.f;
-  static constexpr float WEIGHT_DISTANCE = -8.f;
+  static constexpr float WEIGHT_DISTANCE = -2.f;
   static constexpr float WEIGHT_AVOID_WALLS = 0.f;
   static constexpr float WALL_AVOID_DISTANCE = 0.1f;
 
-  static constexpr float MAX_CLEARANCE = .125f;
+  static constexpr float MAX_CLEARANCE = .15f;
 
   // Epsilon value for handling limited numerical precision.
   static constexpr float kEpsilon = 1e-5;
