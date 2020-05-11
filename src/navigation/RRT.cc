@@ -183,9 +183,18 @@ Vertex& RRT::SelectBestEndVertex() {
 Vertex RRT::Sample(const float c_max) {
   static util_random::Random rng;
   if (c_max >= std::numeric_limits<float>().max()) {
-    return Vertex({rng.UniformRandom(_map_min.x(), _map_max.x()),
-                   rng.UniformRandom(_map_min.y(), _map_max.y())});
+    const float map_max_dim = fmax(_map_max.x() - _map_min.x(), _map_max.y() - _map_max.y());
+    int i = 0;
+    Vector2f loc;
+    do {
+      const float angle = rng.UniformRandom(0, M_2PI);
+      const float dist = pow(rng.UniformRandom(0, 1), 2.f) * map_max_dim;
+      loc = Vector2f(_goal.x() + cos(angle) * dist,
+                     _goal.y() + sin(angle) * dist);
+    } while ((loc.x() < _map_min.x() || loc.y() < _map_min.y() || loc.x() > _map_max.x() || loc.y() > _map_max.y()) && i < 10);
+    return Vertex(loc);
   }
+
   const float c_min = (_goal - _start).norm();
   const Vector2f x_center = (_start + _goal) / 2.f;
 
@@ -328,7 +337,7 @@ void RRT::GetNNearestNeighborsFast(const Vertex& x, std::vector<Vertex*>& neighb
   const Vector2i center_cell = WorldToGrid(x.loc); 
   int cell_radius = 0;
   std::vector<Vertex*> vertices;
-  while (vertices.size() < n && cell_radius < max_cell_radius) {
+  while (cell_radius <= 1 || (vertices.size() < n && cell_radius < max_cell_radius)) {
     int x0 = center_cell.x() - cell_radius;
     int x1 = center_cell.x() + cell_radius;
     int y0 = center_cell.y() - cell_radius;
