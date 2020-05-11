@@ -19,6 +19,7 @@ CONFIG_INT(rrt_max_iter, "rrt_max_iter");
 CONFIG_FLOAT(rrt_goal_tolerance, "rrt_goal_tolerance");
 CONFIG_FLOAT(rrt_wall_dilation, "rrt_wall_dilation");
 CONFIG_FLOAT(rrt_neighborhood_radius, "rrt_neighborhood_radius");
+CONFIG_FLOAT(rrt_neighbor_count, "rrt_neighbor_count");
 CONFIG_FLOAT(rrt_steering_eta, "rrt_steering_eta");
 config_reader::ConfigReader config_reader_({"config/navigation.lua"});
 
@@ -42,7 +43,7 @@ void RRT::StartFindPath(const Vector2f& start, const Vector2f& goal) {
 
 void RRT::_Reset() {
   _vertices.clear();
-  _vertices.push_back(Vertex(_start, 0.f));
+  _vertices.push_back(Vertex(_start));
   
   _vertex_grid.clear();
   _total_iter = 0;
@@ -75,7 +76,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
 
     Vertex x_rand;
     if (_has_path_to_goal) {
-      x_rand = Sample(SelectBestEndVertex().cost);
+      x_rand = Sample(SelectBestEndVertex().cost());
     } else {
       x_rand = Sample(std::numeric_limits<float>().max());
     }
@@ -92,13 +93,14 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
       _vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
 
       std::vector<Vertex*> near;
-      GetNeighbors(x_new, near, CONFIG_rrt_neighborhood_radius);
+      GetNNearestNeighbors(x_new, near, CONFIG_rrt_neighbor_count);
+      // GetNeighbors(x_new, near, CONFIG_rrt_neighborhood_radius);
 
       Vertex* x_min = &x_nearest;
-      float c_min = x_nearest.cost + Cost(x_nearest, x_new);
+      float c_min = x_nearest.cost() + Cost(x_nearest, x_new);
       for (Vertex* x_near : near) {
         if (ObstacleFree(*x_near, x_new)) {
-          const float c = x_near->cost + Cost(*x_near, x_new);
+          const float c = x_near->cost() + Cost(*x_near, x_new);
 
           if (c < c_min) {
             x_min = x_near;
@@ -107,7 +109,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
         }
       }
       x_new.parent = x_min;
-      x_new.cost = x_min->cost + Cost(*x_min, x_new);
+      // x_new.cost() = x_min->cost() + Cost(*x_min, x_new);
 
       // Rewire to find lowest cost path
       for (Vertex* x_near : near) {
@@ -115,10 +117,10 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
           continue;
         }
 
-        const float c = x_new.cost + Cost(x_new, *x_near);
-        if (ObstacleFree(x_new, *x_near) && c < x_near->cost) {
+        const float c = x_new.cost() + Cost(x_new, *x_near);
+        if (ObstacleFree(x_new, *x_near) && c < x_near->cost()) {
           x_near->parent = &x_new;
-          x_near->cost = c;
+          // x_near->cost() = c;
         }
       }
 
@@ -127,9 +129,10 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
         _has_path_to_goal = true;
 
         // Add the final segment to the cost
-        x_new.cost += Cost(x_new, Vertex(_goal));
+        // x_new.cost() += Cost(x_new, Vertex(_goal));
+        x_new.loc = _goal;
 
-        if (!_best_end_vertex || x_new.cost < _best_end_vertex->cost) {
+        if (!_best_end_vertex || x_new.cost() < _best_end_vertex->cost()) {
           _best_end_vertex = &x_new;
         }
       }
@@ -252,7 +255,7 @@ bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {
 Vertex RRT::Steer(const Vertex& x0, const Vertex& x1) {
   const float eta = CONFIG_rrt_steering_eta;
   const Vector2f dx = x1.loc - x0.loc;
-  return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()), 0.f);
+  return Vertex(x0.loc + dx.normalized() * std::min(eta, dx.norm()));
 }
 
 void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius) {
@@ -271,6 +274,28 @@ void RRT::GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const f
         }
       }
     }
+  }
+}
+
+void RRT::GetNNearestNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const unsigned int n) {
+  std::vector<Vertex*> vertices;
+  for (unsigned int i = 0; i < _vertices.size(); ++i) { // put ptrs in vector
+    if (_vertices[i].loc == x.loc) continue;
+
+    vertices.push_back(&_vertices[i]);
+  }
+
+  auto comparator = [&x](const Vertex* a, const Vertex* b) {
+    return a->distance(x) < b->distance(x);
+  };
+
+  std::sort(vertices.begin(), vertices.end(), comparator);
+
+  const unsigned int max_n = std::min(static_cast<unsigned int>(vertices.size()), n);
+  neighbors.clear();
+  neighbors.resize(max_n);
+  for (unsigned int i = 0; i < max_n; ++i) {
+    neighbors[i] = vertices[i];
   }
 }
 
