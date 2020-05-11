@@ -377,7 +377,7 @@ void Navigation::_update_global_path() {
   if (_nav_complete)
     return;
   
-  if (_rrt.ReachedGoal(_world_loc, _nav_goal_loc)) {
+  if ((_world_loc - _nav_goal_loc).norm() < 0.5f) {
     _nav_complete = true;
     _path.clear();
     return;
