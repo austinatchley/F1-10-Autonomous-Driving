@@ -127,7 +127,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
         }
       }
 
-      const bool reached_goal = ReachedGoal(x_new, _goal);
+      const bool reached_goal = ReachedGoal(x_new, _goal) && ObstacleFree(x_new, Vertex(_goal));
       if (reached_goal) {
         if (!_has_path_to_goal) {
           _total_iter_first_path = _total_iter;
