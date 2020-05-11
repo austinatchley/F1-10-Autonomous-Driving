@@ -357,6 +357,7 @@ void ParticleFilter::Initialize(const string& map_file, const Vector2f& loc, con
                  angle + _rng.Gaussian(0.0, angle_sigma), 1.0));
   }
   _odom_initialized = false; // fix for simulator
+  _location_dirty = true;
   _map.Load(map_file);
 }
 
