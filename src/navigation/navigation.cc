@@ -395,7 +395,7 @@ void Navigation::Run() {
   _update_global_path();
 
   AckermannCurvatureDriveMsg msg; 
-  if (!_nav_complete) {
+  if (!_nav_complete && !_rrt.IsFindingPath()) {
     // compute local carrot from global path
     const Vector2f carrot_global = _find_carrot();
     _carrot_loc = Eigen::Rotation2D<float>(-_world_angle) * (carrot_global - _world_loc);
