@@ -321,17 +321,22 @@ void RRT::GetNNearestNeighborsFast(const Vertex& x, std::vector<Vertex*>& neighb
     int y1 = center_cell.y() + cell_radius;
     for (int cx = x0; cx <= x1; ++cx) {
       for (int cy = y0; cy <= y1; ++cy) {
-        for (Vertex* v : _vertex_grid[Vector2i(x0, cy)])
+        for (Vertex* v : _vertex_grid[Vector2i(x0, cy)]) // left side of box
           if (v->loc != x.loc)
             vertices.push_back(v);
-        for (Vertex* v : _vertex_grid[Vector2i(x1, cy)])
+
+        if (cell_radius == 0) // if we are on the middle cell, don't double count
+          continue;
+
+        for (Vertex* v : _vertex_grid[Vector2i(x1, cy)]) // right side of box
           if (v->loc != x.loc)
             vertices.push_back(v);
-        if (cx > x0 && cx < x1) {
-          for (Vertex* v : _vertex_grid[Vector2i(cx, y0)])
+       
+        if (cx > x0 && cx < x1) { // don't double-count corners
+          for (Vertex* v : _vertex_grid[Vector2i(cx, y0)]) // top side of box
             if (v->loc != x.loc)
               vertices.push_back(v);
-          for (Vertex* v : _vertex_grid[Vector2i(cx, y1)])
+          for (Vertex* v : _vertex_grid[Vector2i(cx, y1)]) // bottom size of box
             if (v->loc != x.loc)
               vertices.push_back(v);
         }
