@@ -14,7 +14,7 @@ using std::string;
 
 namespace planning {
 CONFIG_INT(rrt_max_iter_frame, "rrt_max_iter_frame");
-CONFIG_INT(rrt_min_total_iter, "rrt_min_total_iter");
+CONFIG_INT(rrt_extra_iter, "rrt_extra_iter");
 CONFIG_INT(rrt_max_iter, "rrt_max_iter");
 CONFIG_FLOAT(rrt_goal_tolerance, "rrt_goal_tolerance");
 CONFIG_FLOAT(rrt_wall_dilation, "rrt_wall_dilation");
@@ -46,7 +46,10 @@ void RRT::_Reset() {
   _vertices.push_back(Vertex(_start));
   
   _vertex_grid.clear();
+
   _total_iter = 0;
+  _total_iter_first_path = 0;
+
   _has_path_to_goal = false;
   _best_end_vertex = nullptr;
 }
@@ -126,6 +129,10 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
 
       const bool reached_goal = ReachedGoal(x_new, _goal);
       if (reached_goal) {
+        if (!_has_path_to_goal) {
+          _total_iter_first_path = _total_iter;
+        }
+
         _has_path_to_goal = true;
 
         // Add the final segment to the cost
@@ -136,7 +143,9 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
           _best_end_vertex = &x_new;
         }
       }
-      if (_total_iter >= CONFIG_rrt_min_total_iter && reached_goal) {
+
+      // Run extra_iter iterations more after we find the first path
+      if (_total_iter - _total_iter_first_path >= CONFIG_rrt_extra_iter && reached_goal) {
         finished_pathfinding = true;
         break;
       }
@@ -144,7 +153,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
     ++i;
     ++_total_iter;
   }
-  std::cerr << "RRT* iters: " << _total_iter << "/" << CONFIG_rrt_min_total_iter;
+  std::cerr << "RRT* iters: " << _total_iter;
   std::cerr << " (" << CONFIG_rrt_max_iter << " max)" << std::endl;
 
   // reconstruct best path

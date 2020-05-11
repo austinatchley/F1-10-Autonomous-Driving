@@ -98,6 +98,7 @@ private:
   Vertex* _best_end_vertex = nullptr;
 
   int _total_iter;
+  int _total_iter_first_path;
 
   float _grid_size = 1.f;
 
