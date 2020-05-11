@@ -438,7 +438,7 @@ float Navigation::_now() {
 }
 
 Vector2f Navigation::_find_carrot() {
-  static constexpr float radius = 2.f;
+  static constexpr float radius = 1.75f;
 
   Vector2f carrot = _nav_goal_loc;
   if (_path.empty() || (_nav_goal_loc - _world_loc).norm() < radius) {

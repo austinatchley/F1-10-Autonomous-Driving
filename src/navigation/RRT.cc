@@ -127,7 +127,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
         }
       }
 
-      const bool reached_goal = ReachedGoal(x_new, _goal) && ObstacleFree(x_new, Vertex(_goal));
+      const bool reached_goal = ReachedGoal(x_new, _goal);
       if (reached_goal) {
         if (!_has_path_to_goal) {
           _total_iter_first_path = _total_iter;
@@ -137,10 +137,12 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
 
         // Add the final segment to the cost
         // x_new.cost() += Cost(x_new, Vertex(_goal));
-        x_new.loc = _goal;
+        _vertices.push_back(Vertex(_goal));
+        Vertex& goal_vertex = _vertices.back();
+        goal_vertex.parent = &x_new;
 
-        if (!_best_end_vertex || x_new.cost() < _best_end_vertex->cost()) {
-          _best_end_vertex = &x_new;
+        if (!_best_end_vertex || goal_vertex.cost() < _best_end_vertex->cost()) {
+          _best_end_vertex = &goal_vertex;
         }
       }
 
@@ -194,7 +196,7 @@ Vertex RRT::Sample(const float c_max) {
 
   bool found_good_sample = false;
   Vertex sample;
-  int i = 0;
+  int i = 0; // set iteration limit just in case we can't actually find a good sample
   while (!found_good_sample && i < 10) {
     // Scale ellipse axes
     const Vector2f L_x_ball = SampleUnitNBall().cwiseProduct(Vector2f(
@@ -246,7 +248,7 @@ Vertex& RRT::Nearest(const Vertex& x) {
 
 bool RRT::ReachedGoal(const Vertex& pos, const Vertex& goal) {
   const float delta = CONFIG_rrt_goal_tolerance;
-  return pos.distance(goal) < delta;
+  return ObstacleFree(pos, goal) && pos.distance(goal) < delta;
 }
 
 bool RRT::ObstacleFree(const Vertex& x0, const Vertex& x1) {

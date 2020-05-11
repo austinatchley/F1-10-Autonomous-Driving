@@ -63,7 +63,7 @@ DEFINE_string(laser_topic, "scan", "Name of ROS topic for LIDAR data");
 DEFINE_string(odom_topic, "odom", "Name of ROS topic for odometry data");
 DEFINE_string(loc_topic, "localization", "Name of ROS topic for localization");
 DEFINE_string(init_topic, "initialpose", "Name of ROS topic for initialization");
-DEFINE_string(map, "maps/GDC2.txt", "Name of vector map file");
+DEFINE_string(map, "maps/GDC3.txt", "Name of vector map file");
 
 DEFINE_double(dist, 1.0, "Float distance for 1D TOC");
 DEFINE_double(curv, 0.0, "Float curvature value");
