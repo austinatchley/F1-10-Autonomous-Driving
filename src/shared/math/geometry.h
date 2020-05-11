@@ -413,6 +413,10 @@ bool CircleSegmentIntersect(const Eigen::Matrix<T, 2, 1>& line_a,
   if (t0 < 0 || t0 > 1) {
     if (t1 < 0 || t1 > 1) {
       // neither intersection point lies within the segment
+      if ((line_b - center).norm() < radius) {
+        intersection = line_b;
+        return true;
+      }
       return false;
     }
     intersection = center + a + t1 * (b - a);

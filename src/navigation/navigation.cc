@@ -35,6 +35,7 @@
 #include "visualization/visualization.h"
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 
 using Eigen::Rotation2D;
 using Eigen::Vector2f;
@@ -196,8 +197,11 @@ float Navigation::_arc_distance(const Vector2f& p, float curvature) {
 
   const float r_turn = abs(1.f / curvature);
 
-  float theta = std::atan2(p.x(), r_turn - abs(p.y()));
-  return r_turn * theta;
+  const float theta = std::atan2(p.x(), r_turn - abs(p.y()));
+  float distance = r_turn * theta;
+  if (distance < 0)
+    distance += r_turn * M_2PI;
+  return distance;
 }
 
 float Navigation::_arc_distance_safe(const Vector2f& p, float curvature) {
@@ -302,7 +306,14 @@ void Navigation::_get_clearance(float& min_clearance, float& avg_clearance, floa
 float Navigation::_path_score(float curvature) {
   const Vector2f closest_approach = _closest_approach(curvature, _carrot_loc);
 
-  const float free_path_length = min(_get_free_path_length(curvature), 5.f);
+  // const float free_path_length = min(_get_free_path_length(curvature), 5.f);
+  float fpl_limit = _arc_distance(closest_approach, curvature);
+  std::cout << fpl_limit << std::endl;
+  if (!isfinite(fpl_limit) || fpl_limit < 0)
+    fpl_limit = 5.f;
+  fpl_limit = min(fpl_limit, 5.f);
+  const float free_path_length =
+        min(_get_free_path_length(curvature), fpl_limit);
 
   const float distance_to_target = (_carrot_loc - closest_approach).norm();
 
@@ -438,7 +449,7 @@ float Navigation::_now() {
 }
 
 Vector2f Navigation::_find_carrot() {
-  static constexpr float radius = 1.75f;
+  static constexpr float radius = 1.2f;
 
   Vector2f carrot = _nav_goal_loc;
   if (_path.empty() || (_nav_goal_loc - _world_loc).norm() < radius) {
@@ -448,6 +459,9 @@ Vector2f Navigation::_find_carrot() {
   visualization::DrawArc(_world_loc, radius, 0, M_2PI, 0xff0000, global_viz_msg_);
 
   for (int i = _path.size() - 1; i > 0; --i) {
+    if (_map.Intersects(_world_loc, _path.at(i).loc)) {
+      continue;
+    }
     if (geometry::CircleSegmentIntersect(_path.at(i - 1).loc, _path.at(i).loc, _world_loc, radius,
                                          carrot)) {
       break;
@@ -458,7 +472,7 @@ Vector2f Navigation::_find_carrot() {
 }
 
 bool Navigation::_planned_path_valid() {
-  static constexpr float max_dist_to_edge = 2.0;
+  static constexpr float max_dist_to_edge = 1.2f;
 
   for (int i = _path.size() - 1; i >= 1; --i) {
     const Vector2f& v0 = _path.at(i).loc;
