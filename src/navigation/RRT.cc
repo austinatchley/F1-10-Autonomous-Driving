@@ -209,7 +209,7 @@ Vertex RRT::Sample(const float c_max) {
     found_good_sample = sample.loc.x() >= _map_min.x() &&
                         sample.loc.x() <= _map_max.x() &&
                         sample.loc.y() >= _map_min.y() &&
-                        sample.loc.y() <= _map_max.x();
+                        sample.loc.y() <= _map_max.y();
     i++;
   }
 
