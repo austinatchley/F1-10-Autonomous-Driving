@@ -42,9 +42,12 @@ void RRT::StartFindPath(const Vector2f& start, const Vector2f& goal) {
 
 void RRT::_Reset() {
   _vertices.clear();
-  _vertex_grid.clear();
   _vertices.push_back(Vertex(_start, 0.f));
+  
+  _vertex_grid.clear();
   _total_iter = 0;
+  _has_path_to_goal = false;
+  _best_end_vertex = nullptr;
 }
 
 bool RRT::IsFindingPath() {
@@ -56,10 +59,9 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
     throw std::runtime_error("Call StartFindPath() before FindPath()!");
   }
 
-  static util_random::Random rng;
   path.clear();
 
-  bool reached_goal = false;
+  bool finished_pathfinding = false;
   i = 0;
   while (true) {
     if (_total_iter + i >= CONFIG_rrt_max_iter) {
@@ -71,15 +73,20 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
       break;
     }
 
-    const Vertex x_rand{{rng.UniformRandom(_map_min.x(), _map_max.x()),
-                         rng.UniformRandom(_map_min.y(), _map_max.y())}};
+    Vertex x_rand;
+    if (_has_path_to_goal) {
+      x_rand = Sample(SelectBestEndVertex().cost);
+    } else {
+      x_rand = Sample(std::numeric_limits<float>().max());
+    }
+    visualization::DrawPoint(x_rand.loc, 0xFF0069, _msg);
 
     Vertex& x_nearest = Nearest(x_rand);
-    Vertex x_new_stack = Steer(x_nearest, x_rand);
+    Vertex x_new_stack = Steer(x_nearest, x_rand); // version of x_new that goes on the stack and will be recycled
 
     if (ObstacleFree(x_nearest, x_new_stack)) {
       _vertices.push_back(x_new_stack);
-      Vertex& x_new = _vertices.back();
+      Vertex& x_new = _vertices.back(); // version of x_new that gets managed by vector
 
       // Push a pointer to the vertex into our acceleration structure
       _vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
@@ -99,9 +106,10 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
           }
         }
       }
-
       x_new.parent = x_min;
       x_new.cost = x_min->cost + Cost(*x_min, x_new);
+
+      // Rewire to find lowest cost path
       for (Vertex* x_near : near) {
         if (x_near == x_min) {
           continue;
@@ -114,8 +122,19 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
         }
       }
 
-      if (_total_iter >= CONFIG_rrt_min_total_iter && ReachedGoal(x_new_stack, _goal)) {
-        reached_goal = true;
+      const bool reached_goal = ReachedGoal(x_new, _goal);
+      if (reached_goal) {
+        _has_path_to_goal = true;
+
+        // Add the final segment to the cost
+        x_new.cost += Cost(x_new, Vertex(_goal));
+
+        if (!_best_end_vertex || x_new.cost < _best_end_vertex->cost) {
+          _best_end_vertex = &x_new;
+        }
+      }
+      if (_total_iter >= CONFIG_rrt_min_total_iter && reached_goal) {
+        finished_pathfinding = true;
         break;
       }
     }
@@ -134,30 +153,51 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
     path.push_front(*current);
   }
 
-  if (reached_goal) {
+  if (finished_pathfinding) {
     _pathfinding = false;
   }
-  return reached_goal;
+  return finished_pathfinding;
 }
 
 Vertex& RRT::SelectBestEndVertex() {
-  const Vertex& goal_vertex(_goal);
-
-  // first try to select lowest cost vertex that reaches goal 
-  std::vector<Vertex*> near_goal;
-  GetNeighbors(goal_vertex, near_goal, CONFIG_rrt_goal_tolerance);
-  if (near_goal.size() > 0) {
-    Vertex* best_vertex = near_goal[0];
-    for (Vertex* v : near_goal) {
-      if (v->cost < best_vertex->cost) {
-        best_vertex = v;
-      }
-    }
-    return *best_vertex;
+  if (_best_end_vertex) {
+    return *_best_end_vertex;
   }
 
   // otherwise select vertex nearest to goal
   return Nearest(Vertex(_goal));
+}
+
+Vertex RRT::Sample(const float c_max) {
+  static util_random::Random rng;
+  if (c_max >= std::numeric_limits<float>().max()) {
+    return Vertex({rng.UniformRandom(_map_min.x(), _map_max.x()),
+                   rng.UniformRandom(_map_min.y(), _map_max.y())});
+  }
+  const float c_min = (_goal - _start).norm();
+  const Vector2f x_center = (_start + _goal) / 2.f;
+
+  const float angle = atan2(_goal.y() - _start.y(), _goal.x() - _start.x());
+  const Rotation2D<float> rot_to_world(angle);
+
+  // Scale ellipse axes
+  const Vector2f L_x_ball = SampleUnitNBall().cwiseProduct(Vector2f(
+    c_max / 2.f,
+    sqrt(fmax(0.f, pow(c_max, 2) - pow(c_min, 2))) / 2.f
+  ));
+  
+  // we allow samples outside of map bounds
+  Vertex ret(rot_to_world * L_x_ball + x_center);
+  return ret;
+}
+
+Vector2f RRT::SampleUnitNBall() {
+  static util_random::Random rng;
+  Vector2f rand;
+  do {  
+    rand = Vector2f(rng.UniformRandom(-1, 1), rng.UniformRandom(-1, 1));
+  } while (rand.norm() > 1);
+  return rand;
 }
 
 Vertex& RRT::Nearest(const Vertex& x) {
@@ -246,7 +286,7 @@ void RRT::GetNaiveNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, co
 float RRT::Cost(const Vertex& x0, const Vertex& x1) {
   // TODO: Consider angle here
 
-  return (x0.loc - x1.loc).squaredNorm();
+  return (x0.loc - x1.loc).norm();
 }
 
 void RRT::VisualizePath(std::deque<Vertex>& path) {

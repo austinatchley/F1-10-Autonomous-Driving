@@ -51,6 +51,10 @@ public:
   // Returns true if the line connecting the two given points does not collide with any objects
   bool ObstacleFree(const Vertex& x0, const Vertex& x1);
 
+  // sample a point for informed RRT*
+  Vertex Sample(const float c_max);
+  Vector2f SampleUnitNBall();
+
   // Returns a point between x0 and x1
   Vertex Steer(const Vertex& x0, const Vertex& x1);
 
@@ -83,11 +87,14 @@ private:
   void _Reset();
 
   bool _pathfinding = false;
+  bool _has_path_to_goal = false;
   VertexGrid _vertex_grid;
   std::deque<Vertex> _vertices;
   Vector2f _map_min, _map_max;
   Vector2f _start;
   Vector2f _goal;
+  Vertex* _best_end_vertex = nullptr;
+
   int _total_iter;
 
   float _grid_size = 1.f;
