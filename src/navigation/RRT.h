@@ -101,7 +101,7 @@ private:
   int _total_iter;
   int _total_iter_first_path;
 
-  float _grid_size = 1.f;
+  float _grid_size = .5f;
 
   const vector_map::VectorMap& _map;
   f1tenth_course::VisualizationMsg& _msg;
