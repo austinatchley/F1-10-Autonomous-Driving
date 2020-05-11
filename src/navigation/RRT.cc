@@ -96,7 +96,7 @@ bool RRT::FindPath(std::deque<Vertex>& path, int& i) {
       _vertex_grid[WorldToGrid(x_new.loc)].push_back(&x_new);
 
       std::vector<Vertex*> near;
-      GetNNearestNeighbors(x_new, near, CONFIG_rrt_neighbor_count);
+      GetNNearestNeighborsFast(x_new, near, CONFIG_rrt_neighbor_count);
       // GetNeighbors(x_new, near, CONFIG_rrt_neighborhood_radius);
 
       Vertex* x_min = &x_nearest;
@@ -292,6 +292,52 @@ void RRT::GetNNearestNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors,
     if (_vertices[i].loc == x.loc) continue;
 
     vertices.push_back(&_vertices[i]);
+  }
+
+  auto comparator = [&x](const Vertex* a, const Vertex* b) {
+    return a->distance(x) < b->distance(x);
+  };
+
+  std::sort(vertices.begin(), vertices.end(), comparator);
+
+  const unsigned int max_n = std::min(static_cast<unsigned int>(vertices.size()), n);
+  neighbors.clear();
+  neighbors.resize(max_n);
+  for (unsigned int i = 0; i < max_n; ++i) {
+    neighbors[i] = vertices[i];
+  }
+}
+
+void RRT::GetNNearestNeighborsFast(const Vertex& x, std::vector<Vertex*>& neighbors, const unsigned int n) {
+  constexpr static int max_cell_radius = 8;
+
+  const Vector2i center_cell = WorldToGrid(x.loc); 
+  int cell_radius = 0;
+  std::vector<Vertex*> vertices;
+  while (vertices.size() < n && cell_radius < max_cell_radius) {
+    int x0 = center_cell.x() - cell_radius;
+    int x1 = center_cell.x() + cell_radius;
+    int y0 = center_cell.y() - cell_radius;
+    int y1 = center_cell.y() + cell_radius;
+    for (int cx = x0; cx <= x1; ++cx) {
+      for (int cy = y0; cy <= y1; ++cy) {
+        for (Vertex* v : _vertex_grid[Vector2i(x0, cy)])
+          if (v->loc != x.loc)
+            vertices.push_back(v);
+        for (Vertex* v : _vertex_grid[Vector2i(x1, cy)])
+          if (v->loc != x.loc)
+            vertices.push_back(v);
+        if (cx > x0 && cx < x1) {
+          for (Vertex* v : _vertex_grid[Vector2i(cx, y0)])
+            if (v->loc != x.loc)
+              vertices.push_back(v);
+          for (Vertex* v : _vertex_grid[Vector2i(cx, y1)])
+            if (v->loc != x.loc)
+              vertices.push_back(v);
+        }
+      }
+    }
+    ++cell_radius;
   }
 
   auto comparator = [&x](const Vertex* a, const Vertex* b) {

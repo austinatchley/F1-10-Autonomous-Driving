@@ -66,6 +66,7 @@ public:
   void GetNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const float neighborhood_radius);
 
   void GetNNearestNeighbors(const Vertex& x, std::vector<Vertex*>& neighbors, const unsigned int n);
+  void GetNNearestNeighborsFast(const Vertex& x, std::vector<Vertex*>& neighbors, const unsigned int n);
 
   // Returns a vector of points to the vertices representing the neighbors of a given point
   // Uses naive distance formula approach
