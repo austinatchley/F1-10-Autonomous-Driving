@@ -192,15 +192,29 @@ Vertex RRT::Sample(const float c_max) {
   const float angle = atan2(_goal.y() - _start.y(), _goal.x() - _start.x());
   const Rotation2D<float> rot_to_world(angle);
 
-  // Scale ellipse axes
-  const Vector2f L_x_ball = SampleUnitNBall().cwiseProduct(Vector2f(
-    c_max / 2.f,
-    sqrt(fmax(0.f, pow(c_max, 2) - pow(c_min, 2))) / 2.f
-  ));
-  
-  // we allow samples outside of map bounds
-  Vertex ret(rot_to_world * L_x_ball + x_center);
-  return ret;
+  bool found_good_sample = false;
+  Vertex sample;
+  int i = 0;
+  while (!found_good_sample && i < 10) {
+    // Scale ellipse axes
+    const Vector2f L_x_ball = SampleUnitNBall().cwiseProduct(Vector2f(
+      c_max / 2.f,
+      sqrt(fmax(0.f, pow(c_max, 2) - pow(c_min, 2))) / 2.f
+    ));
+    
+    // we allow samples outside of map bounds
+    sample = Vertex(rot_to_world * L_x_ball + x_center);
+
+    // check to see if sample is in bounds
+    found_good_sample = sample.loc.x() >= _map_min.x() &&
+                        sample.loc.x() <= _map_max.x() &&
+                        sample.loc.y() >= _map_min.y() &&
+                        sample.loc.y() <= _map_max.y();
+    i++;
+  }
+
+
+  return sample;
 }
 
 Vector2f RRT::SampleUnitNBall() {
